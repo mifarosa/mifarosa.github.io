@@ -42,11 +42,30 @@
             border-bottom: 1px solid var(--line);
         }
         .nav-logo {
-            font-family: 'DM Mono', monospace;
-            font-size: 0.85rem;
-            color: var(--accent);
-            letter-spacing: 0.15em;
-            text-transform: uppercase;
+            position: relative;
+            cursor: default;
+        }
+
+        .nav-logo::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            background: #1a1a24;
+            color: #8a887e;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            padding: 0.4rem 0.8rem;
+            border: 1px solid rgba(255,255,255,0.07);
+            border-radius: 2px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .nav-logo:hover::after {
+            opacity: 1;
         }
         .nav-links { display: flex; gap: 2rem; list-style: none; }
         .nav-links a {
@@ -456,7 +475,7 @@
 <body>
 
 <nav>
-    <div class="nav-logo">MFG</div>
+    <div class="nav-logo" data-tooltip="mi·fa·rosa → Mehmet·Faruk·Gül(rosa)">mifarosa</div>
     <ul class="nav-links">
         <li><a href="#experience">Experience</a></li>
         <li><a href="#skills">Skills</a></li>
