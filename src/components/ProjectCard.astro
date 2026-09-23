@@ -1,0 +1,62 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+const { project } = Astro.props;
+const { title, subtitle, period, status, tags, repo, demo } = project.data;
+const { Content } = await render(project);
+---
+<article class="project fade-up">
+  <div class="project-left">
+    <div class="project-period">{period}</div>
+    <div class="project-name">{title}</div>
+    <span class={`status status-${status.toLowerCase()}`}>{status}</span>
+  </div>
+  <div class="project-right">
+    <h3 class="project-subtitle">{subtitle}</h3>
+    <div class="project-body"><Content /></div>
+    <div class="tags">{tags.map((t) => <span class="tag">{t}</span>)}</div>
+    {(repo || demo) && (
+      <div class="project-actions">
+        {repo && <a class="btn btn-outline btn-small" href={repo} target="_blank" rel="noopener">View on GitHub</a>}
+        {demo && <a class="btn btn-outline btn-small" href={demo} target="_blank" rel="noopener">Open live demo</a>}
+      </div>
+    )}
+  </div>
+</article>
+
+<style>
+  .project {
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 3rem;
+    padding: 2.5rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .project:first-child { padding-top: 0; }
+  .project-period { font-family: var(--font-mono); font-size: 0.75rem; color: var(--muted); margin-bottom: 0.5rem; }
+  .project-name { color: var(--accent); font-weight: 500; margin-bottom: 0.6rem; }
+  .status {
+    display: inline-block;
+    font-family: var(--font-mono); font-size: 0.68rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 2px;
+    border: 1px solid;
+  }
+  .status-active { color: #8fc79a; border-color: rgba(143, 199, 154, 0.35); }
+  .status-beta { color: var(--accent); border-color: rgba(200, 169, 110, 0.35); }
+  .status-released { color: var(--accent2); border-color: rgba(123, 140, 222, 0.35); }
+  .status-archived { color: var(--muted); border-color: var(--line); }
+
+  .project-subtitle { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.75rem; }
+  .project-body { font-size: 0.92rem; color: var(--text-soft); max-width: 70ch; margin-bottom: 1rem; }
+  .project-body :global(p + p) { margin-top: 0.75rem; }
+  .project-actions { margin-top: 1.25rem; display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+  @media (max-width: 900px) {
+    .project { grid-template-columns: 1fr; gap: 0.75rem; }
+  }
+</style>
