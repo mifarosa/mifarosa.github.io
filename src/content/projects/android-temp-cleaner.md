@@ -10,4 +10,4 @@ order: 3
 ---
 Frees up storage on Redmi and other Android phones by clearing the temporary files folder over ADB, without root access. Detects connected devices automatically, shows the folder size before cleaning, asks for confirmation and logs every operation. Turkish and English interface.
 
-Currently in testing.
+Available as a beta release. It is still being tested, so try it on your own device before relying on it.

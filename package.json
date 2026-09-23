@@ -6,9 +6,15 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "import:blogger": "node scripts/import-blogger.mjs"
   },
   "dependencies": {
     "astro": "^7.3.4"
+  },
+  "devDependencies": {
+    "fast-xml-parser": "^5.11.1",
+    "turndown": "^7.2.4",
+    "turndown-plugin-gfm": "^1.0.2"
   }
 }

@@ -45,6 +45,21 @@ What it does, in a short paragraph or two.
 
 Create `src/content/blog/<slug>.md` with `title`, `description` and `date` in the frontmatter. Posts with `draft: true` are not published.
 
+### Import posts from Blogger
+
+1. In Blogger: **Settings → Manage blog → Back up content → Download**. This gives an `.xml` file.
+2. Run:
+
+   ```bash
+   npm run import:blogger -- path/to/blog-backup.xml --images
+   ```
+
+   - `--images` downloads images into `public/blog/<slug>/` so posts no longer depend on Blogger. Leave it out to keep linking to Blogger's image servers.
+   - `--lang tr` (default) marks posts as Turkish; `--force` overwrites posts that were already imported.
+3. Review the generated files in `src/content/blog/`, delete `hello-world.md`, then run `npm run dev` and check a few posts.
+
+Drafts are imported with `draft: true` and stay hidden. Static pages and comments are skipped. The script also writes `scripts/blogger-redirects.csv` with each old post URL and its new address.
+
 ## Deployment
 
 Every push to `main` builds the site and deploys it with GitHub Actions (`.github/workflows/deploy.yml`).

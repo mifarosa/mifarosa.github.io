@@ -31,6 +31,7 @@ const building = projects.filter((p) => p.data.status === 'Active');
             {building.map((p, i) => (
               <>{i > 0 && ', '}<a href={p.data.repo ?? '/projects'} rel="noopener">{p.data.title}</a></>
             ))}
+            {' '}and <a href="/projects">a few other side projects</a>
           </dd>
         </div>
       )}

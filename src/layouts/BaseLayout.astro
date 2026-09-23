@@ -5,10 +5,12 @@ import { profile, contact } from '../data/profile';
 interface Props {
   title?: string;
   description?: string;
+  lang?: string;   // language of the page content, e.g. 'tr' for Turkish posts
 }
 
 const {
   title,
+  lang = 'en',
   description = 'Mehmet Faruk Gül, Software Engineer at Huawei. Backend development with Java and Python, personal projects and writing.',
 } = Astro.props;
 
@@ -29,7 +31,7 @@ const nav = [
 const year = new Date().getFullYear();
 ---
 <!doctype html>
-<html lang="en">
+<html lang={lang}>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />

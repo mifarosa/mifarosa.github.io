@@ -95,7 +95,7 @@ export const education = [
     degree: 'B.Sc. in Computer Engineering',
     period: '2017 – 2021',
     detail:
-      'GPA 3.31 / 4.00. Graduation project: an image classification application that tells recyclable materials apart.',
+      'GPA 3.31 / 4.00. Graduation project: a sensor-based system that classifies recyclable materials.',
   },
   {
     school: 'Anadolu University',

@@ -6,24 +6,41 @@ import { contact } from '../../data/profile';
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+// Group posts by year, newest first
+const byYear = [...posts.reduce((map, post) => {
+  const y = post.data.date.getFullYear();
+  map.set(y, [...(map.get(y) ?? []), post]);
+  return map;
+}, new Map<number, typeof posts>())];
+
+const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+const langName: Record<string, string> = { tr: 'Turkish' };
 ---
-<BaseLayout title="Blog" description="Writing by Mehmet Faruk Gül on software engineering and personal projects.">
+<BaseLayout title="Blog" description="Writing by Mehmet Faruk Gül on software engineering, programming exercises and personal projects.">
   <h1 class="page-title">Blog</h1>
   {posts.length > 0 ? (
     <>
-      <p class="lede intro">Notes on software engineering, tools and the projects I work on.</p>
-      <ol class="posts">
-        {posts.map((post) => (
-          <li>
-            <time datetime={post.data.date.toISOString()}>{fmt(post.data.date)}</time>
-            <div>
-              <a class="post-title" href={`/blog/${post.id}`}>{post.data.title}</a>
-              <p>{post.data.description}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
+      <p class="lede intro">
+        Notes on software engineering, programming exercises and the projects I work on.
+        Older posts are in Turkish.
+      </p>
+      {byYear.map(([year, items]) => (
+        <section class="year" aria-labelledby={`y${year}`}>
+          <h2 id={`y${year}`} class="year-title">{year} <span>{items.length} {items.length === 1 ? 'post' : 'posts'}</span></h2>
+          <ol class="posts">
+            {items.map((post) => (
+              <li>
+                <time datetime={post.data.date.toISOString()}>{fmt(post.data.date)}</time>
+                <div>
+                  <a class="post-title" href={`/blog/${post.id}`} lang={post.data.lang}>{post.data.title}</a>
+                  {langName[post.data.lang] && <span class="lang">{langName[post.data.lang]}</span>}
+                  <p lang={post.data.lang}>{post.data.description}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
     </>
   ) : (
     <p class="lede">
@@ -36,12 +53,17 @@ const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 
 
 <style>
   .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
-  .intro { margin-bottom: 2rem; }
+  .intro { margin-bottom: 2.5rem; }
+  .year + .year { margin-top: 2.5rem; }
+  .year-title { font-size: 1.35rem; font-weight: 700; padding-bottom: 0.5rem; border-bottom: 1px solid var(--rule); }
+  .year-title span { font-size: 0.9rem; font-weight: 400; color: var(--muted); margin-left: 0.5rem; }
   .posts { list-style: none; }
-  .posts li { display: grid; grid-template-columns: 8rem 1fr; gap: 1.5rem; padding: 1.1rem 0; border-top: 1px solid var(--rule); }
-  .posts time { color: var(--muted); font-size: 0.9rem; padding-top: 0.15rem; }
-  .post-title { font-weight: 700; font-size: 1.1rem; color: var(--ink); text-decoration: none; }
+  .posts li { display: grid; grid-template-columns: 5.5rem 1fr; gap: 1.25rem; padding: 1rem 0; }
+  .posts li + li { border-top: 1px solid var(--rule); }
+  .posts time { color: var(--muted); font-size: 0.9rem; padding-top: 0.15rem; white-space: nowrap; }
+  .post-title { font-weight: 700; font-size: 1.05rem; color: var(--ink); text-decoration: none; }
   .post-title:hover { color: var(--accent); text-decoration: underline; }
-  .posts p { color: var(--ink-soft); }
-  @media (max-width: 640px) { .posts li { grid-template-columns: 1fr; gap: 0.2rem; } }
+  .lang { margin-left: 0.5rem; font-size: 0.8rem; color: var(--muted); border: 1px solid var(--rule); border-radius: 4px; padding: 0 0.35rem; white-space: nowrap; }
+  .posts p { color: var(--ink-soft); font-size: 0.95rem; }
+  @media (max-width: 640px) { .posts li { grid-template-columns: 1fr; gap: 0.15rem; } }
 </style>
