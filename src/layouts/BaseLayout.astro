@@ -1,21 +1,32 @@
 ---
 import '../styles/global.css';
-import Nav from '../components/Nav.astro';
-import Footer from '../components/Footer.astro';
+import { profile, contact } from '../data/profile';
 
 interface Props {
   title?: string;
   description?: string;
 }
 
-const siteName = 'Mehmet Faruk Gül';
 const {
   title,
   description = 'Mehmet Faruk Gül, Software Engineer at Huawei. Backend development with Java and Python, personal projects and writing.',
 } = Astro.props;
 
-const fullTitle = title ? `${title} | ${siteName}` : `${siteName} | Software Engineer`;
+const fullTitle = title ? `${title} | ${profile.name}` : `${profile.name} | Software Engineer`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isHome = path === '/';
+
+// On the home page these jump to sections; elsewhere they lead back home first
+const nav = [
+  { id: 'about', label: 'About' },
+  { id: 'experience', label: 'Experience' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'skills', label: 'Skills' },
+  { id: 'education', label: 'Education' },
+].map((n) => ({ ...n, href: isHome ? `#${n.id}` : `/#${n.id}` }));
+
+const year = new Date().getFullYear();
 ---
 <!doctype html>
 <html lang="en">
@@ -26,6 +37,8 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14161b" media="(prefers-color-scheme: dark)" />
 
     <!-- Open Graph: link previews on LinkedIn, WhatsApp, etc. -->
     <meta property="og:type" content="website" />
@@ -37,31 +50,171 @@ const canonical = new URL(Astro.url.pathname, Astro.site);
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@400;500&family=Atkinson+Hyperlegible+Next:wght@400;500;700;800&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Apply the saved theme before first paint to avoid a flash -->
+    <script is:inline>
+      try {
+        const saved = localStorage.getItem('theme');
+        if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+      } catch (e) {}
+    </script>
   </head>
   <body>
-    <Nav />
-    <main>
-      <slot />
-    </main>
-    <Footer />
+    <a class="skip-link" href="#content">Skip to content</a>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <div class="identity">
+          <a href="/" class="name">{profile.name}</a>
+          <p class="role">{profile.title}</p>
+          <p class="place">{profile.location}</p>
+        </div>
+
+        <nav aria-label="Sections" class="toc">
+          <ul>
+            {nav.map((n) => (
+              <li><a href={n.href} data-section={isHome ? n.id : undefined}>{n.label}</a></li>
+            ))}
+            <li><a href="/blog" aria-current={path.startsWith('/blog') ? 'page' : undefined}>Blog</a></li>
+          </ul>
+        </nav>
+
+        <ul class="contact" aria-label="Contact">
+          <li><a href={`mailto:${contact.emails[0]}`}>{contact.emails[0]}</a></li>
+          <li><a href={contact.linkedin} rel="noopener">LinkedIn</a></li>
+          <li><a href={contact.github[0]} rel="noopener">GitHub</a></li>
+          <li><a href={contact.newsletter} rel="noopener">Patch Incoming newsletter</a></li>
+          {profile.cvUrl && <li><a href={profile.cvUrl} download>Download CV (PDF)</a></li>}
+        </ul>
+
+        <div class="sidebar-foot">
+          <button type="button" class="theme-toggle" aria-label="Switch colour theme">
+            <span class="theme-label">Dark theme</span>
+          </button>
+          <p class="copy">© {year} mifarosa.com</p>
+        </div>
+      </aside>
+
+      <main id="content">
+        <slot />
+      </main>
+    </div>
 
     <script>
-      // Reveal elements marked with .fade-up once they scroll into view
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.1 }
-      );
-      document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
+      // Theme toggle: remembers the visitor's choice
+      const root = document.documentElement;
+      const btn = document.querySelector<HTMLButtonElement>('.theme-toggle');
+      const label = btn?.querySelector('.theme-label');
+      const isDark = () =>
+        root.dataset.theme === 'dark' ||
+        (!root.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+      const sync = () => { if (label) label.textContent = isDark() ? 'Light theme' : 'Dark theme'; };
+      sync();
+      btn?.addEventListener('click', () => {
+        const next = isDark() ? 'light' : 'dark';
+        root.dataset.theme = next;
+        try { localStorage.setItem('theme', next); } catch (e) {}
+        sync();
+      });
+
+      // Highlight the section currently in view in the sidebar (home page only)
+      const links = document.querySelectorAll<HTMLAnchorElement>('.toc a[data-section]');
+      if (links.length) {
+        const byId = new Map([...links].map((a) => [a.dataset.section, a]));
+        const observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach((e) => {
+              if (!e.isIntersecting) return;
+              links.forEach((a) => a.removeAttribute('aria-current'));
+              byId.get(e.target.id)?.setAttribute('aria-current', 'location');
+            });
+          },
+          { rootMargin: '-20% 0px -70% 0px' }
+        );
+        byId.forEach((_, id) => { const el = id && document.getElementById(id); if (el) observer.observe(el); });
+      }
     </script>
   </body>
 </html>
+
+<style>
+  .shell {
+    display: grid;
+    grid-template-columns: 15rem minmax(0, 1fr);
+    gap: 5rem;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+  }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    position: sticky; top: 0;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 3.5rem 0 2rem;
+    display: flex; flex-direction: column; gap: 2.25rem;
+  }
+  .name {
+    display: block;
+    color: var(--ink);
+    text-decoration: none;
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+  .role { margin-top: 0.4rem; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.4; }
+  .place { color: var(--muted); font-size: 0.9rem; }
+
+  .toc ul, .contact { list-style: none; }
+  .toc a {
+    display: block;
+    padding: 0.3rem 0 0.3rem 0.85rem;
+    border-left: 2px solid var(--rule);
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .toc a:hover { color: var(--ink); border-left-color: var(--muted); }
+  .toc a[aria-current] { color: var(--accent); border-left-color: var(--accent); font-weight: 500; }
+
+  .contact { font-size: 0.9rem; display: grid; gap: 0.35rem; }
+  .contact a { color: var(--ink-soft); overflow-wrap: anywhere; }
+  .contact a:hover { color: var(--accent); }
+
+  .sidebar-foot { margin-top: auto; display: grid; gap: 0.75rem; justify-items: start; }
+  .theme-toggle {
+    font: inherit; font-size: 0.85rem;
+    color: var(--ink-soft);
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+  }
+  .theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
+  .copy { font-size: 0.8rem; color: var(--muted); }
+
+  main { padding: 3.5rem 0 6rem; max-width: 46rem; min-width: 0; }
+
+  /* ---------- Small screens: sidebar becomes a header ---------- */
+  @media (max-width: 900px) {
+    .shell { grid-template-columns: 1fr; gap: 0; padding: 0 1.25rem; }
+    .sidebar {
+      position: static; height: auto; overflow: visible;
+      padding: 2rem 0 1.25rem;
+      gap: 1.25rem;
+      border-bottom: 1px solid var(--rule);
+    }
+    .toc ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; }
+    .toc a { padding: 0.25rem 0; border-left: none; border-bottom: 2px solid transparent; }
+    .toc a[aria-current] { border-bottom-color: var(--accent); }
+    .contact { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; }
+    .sidebar-foot { margin-top: 0; }
+    .copy { display: none; }
+    main { padding-top: 2rem; }
+  }
+</style>

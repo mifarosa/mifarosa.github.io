@@ -17,8 +17,9 @@ npm run build    # static output in dist/
 | CV content (summary, experience, skills, education) | `src/data/profile.ts` |
 | Projects (one Markdown file each) | `src/content/projects/` |
 | Blog posts (one Markdown file each) | `src/content/blog/` |
-| Shared layout, nav, footer | `src/layouts/`, `src/components/` |
-| Colors and fonts | `src/styles/global.css` |
+| Page layout (sidebar, theme toggle) | `src/layouts/BaseLayout.astro` |
+| Reusable pieces (project item, section title) | `src/components/` |
+| Colours, fonts, light and dark themes | `src/styles/global.css` |
 | Static files (CV PDF, favicon, CNAME) | `public/` |
 
 ### Add a project

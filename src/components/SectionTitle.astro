@@ -1,0 +1,11 @@
+---
+// Section heading with a shareable "#" anchor link
+interface Props {
+  id: string;
+  title: string;
+}
+const { id, title } = Astro.props;
+---
+<h2 class="section-title">
+  <a class="anchor" href={`#${id}`} aria-label={`Link to ${title}`}>#</a>{title}
+</h2>

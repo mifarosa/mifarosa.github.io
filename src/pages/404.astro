@@ -2,13 +2,12 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 ---
 <BaseLayout title="Page not found">
-  <header class="page-head">
-    <h1>Page not found</h1>
-    <p>This page doesn't exist or has moved.</p>
-    <p class="actions"><a class="btn btn-primary" href="/">Go to home page</a></p>
-  </header>
+  <h1 class="page-title">Page not found</h1>
+  <p class="lede">This page doesn't exist or has moved.</p>
+  <p class="actions"><a class="button" href="/">Go to home page</a></p>
 </BaseLayout>
 
 <style>
-  .actions { margin-top: 2rem; }
+  .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+  .actions { margin-top: 1.5rem; }
 </style>

@@ -5,6 +5,8 @@ export const profile = {
   name: 'Mehmet Faruk Gül',
   title: 'Software Engineer / Computer Engineer',
   location: 'İstanbul, Türkiye',
+  // Large opening sentence at the top of the home page
+  headline: 'I build backend services with Java and Python at Huawei, and small tools of my own in my spare time.',
   summary:
     'Software Engineer with a degree in Computer Engineering, building backend systems with Java and Python across 6–7 enterprise projects at Huawei. Experienced in taking task requirements, creating system designs, writing implementation code and running test procedures. Passionate about exploring new technologies and building personal side projects.',
   // Public version of the CV, placed in public/cv/ (leave empty to hide the button)

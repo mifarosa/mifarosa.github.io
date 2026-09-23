@@ -1,0 +1,42 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+  headingLevel?: 'h2' | 'h3';
+}
+const { project, headingLevel = 'h3' } = Astro.props;
+const { title, subtitle, period, status, tags, repo, demo } = project.data;
+const { Content } = await render(project);
+const Heading = headingLevel;
+---
+<article class="project">
+  <header class="project-head">
+    <Heading class="project-title">
+      {repo ? <a href={repo} rel="noopener">{title}</a> : title}
+    </Heading>
+    <span class={`status status-${status.toLowerCase()}`}>{status}</span>
+  </header>
+  <p class="meta">{subtitle}, {period}</p>
+  <div class="project-body"><Content /></div>
+  <p class="stack"><strong>Stack:</strong> {tags.join(', ')}</p>
+  {(repo || demo) && (
+    <p class="link-row">
+      {repo && <a href={repo} rel="noopener">Source code</a>}
+      {demo && <a href={demo} rel="noopener">Live demo</a>}
+    </p>
+  )}
+</article>
+
+<style>
+  .project + .project { margin-top: 2.25rem; padding-top: 2.25rem; border-top: 1px solid var(--rule); }
+  .project-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .project-title { font-size: 1.15rem; font-weight: 700; line-height: 1.35; }
+  .project-title a { color: var(--ink); text-decoration: none; }
+  .project-title a:hover { color: var(--accent); text-decoration: underline; }
+  .meta { margin-bottom: 0.75rem; }
+  .project-body { color: var(--ink-soft); }
+  .project-body :global(p) { margin-bottom: 0.75rem; }
+  .stack { margin-bottom: 0.5rem; }
+</style>

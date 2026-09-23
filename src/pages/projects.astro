@@ -1,20 +1,17 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import ProjectItem from '../components/ProjectItem.astro';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 ---
 <BaseLayout title="Projects" description="Personal software projects by Mehmet Faruk Gül: backend services, developer tools and apps.">
-  <header class="page-head">
-    <h1>Projects</h1>
-    <p>Things I build outside work, from backend services to small tools that solve my own problems.</p>
-  </header>
-  <section class="section list">
-    {projects.map((p) => <ProjectCard project={p} />)}
-  </section>
+  <h1 class="page-title">Projects</h1>
+  <p class="lede intro">Things I build outside work, from backend services to small tools that solve my own problems.</p>
+  {projects.map((p) => <ProjectItem project={p} headingLevel="h2" />)}
 </BaseLayout>
 
 <style>
-  .list { border-top: none; padding-top: 1rem; }
+  .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
+  .intro { margin-bottom: 2.5rem; }
 </style>

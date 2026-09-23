@@ -9,46 +9,39 @@ const posts = (await getCollection('blog', ({ data }) => !data.draft))
 const fmt = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 ---
 <BaseLayout title="Blog" description="Writing by Mehmet Faruk Gül on software engineering and personal projects.">
-  <header class="page-head">
-    <h1>Blog</h1>
-    {posts.length > 0 ? (
-      <p>Notes on software engineering, tools and the projects I work on.</p>
-    ) : (
-      <p>
-        Posts are moving here from my old blog. Until then you can read them at
-        <a href={contact.blog} target="_blank" rel="noopener">mfgstudiosblog.com</a> or follow the
-        <a href={contact.newsletter} target="_blank" rel="noopener">Patch Incoming newsletter</a>.
-      </p>
-    )}
-  </header>
-
-  {posts.length > 0 && (
-    <section class="section posts">
-      {posts.map((post) => (
-        <a class="post" href={`/blog/${post.id}`}>
-          <time datetime={post.data.date.toISOString()}>{fmt(post.data.date)}</time>
-          <div>
-            <h2>{post.data.title}</h2>
-            <p>{post.data.description}</p>
-          </div>
-        </a>
-      ))}
-    </section>
+  <h1 class="page-title">Blog</h1>
+  {posts.length > 0 ? (
+    <>
+      <p class="lede intro">Notes on software engineering, tools and the projects I work on.</p>
+      <ol class="posts">
+        {posts.map((post) => (
+          <li>
+            <time datetime={post.data.date.toISOString()}>{fmt(post.data.date)}</time>
+            <div>
+              <a class="post-title" href={`/blog/${post.id}`}>{post.data.title}</a>
+              <p>{post.data.description}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </>
+  ) : (
+    <p class="lede">
+      Posts are moving here from my old blog. Until then you can read them at
+      <a href={contact.blog} rel="noopener">mfgstudiosblog.com</a> or follow the
+      <a href={contact.newsletter} rel="noopener">Patch Incoming newsletter</a> on LinkedIn.
+    </p>
   )}
 </BaseLayout>
 
 <style>
-  .page-head a { color: var(--accent); }
-  .posts { border-top: none; padding-top: 1rem; }
-  .post {
-    display: grid; grid-template-columns: 160px 1fr; gap: 2rem;
-    padding: 1.75rem 0;
-    border-bottom: 1px solid var(--line);
-    text-decoration: none;
-  }
-  .post time { font-family: var(--font-mono); font-size: 0.8rem; color: var(--muted); padding-top: 0.3rem; }
-  .post h2 { font-family: var(--font-display); font-size: 1.5rem; font-weight: 400; margin-bottom: 0.35rem; }
-  .post p { color: var(--text-soft); font-size: 0.92rem; }
-  .post:hover h2 { color: var(--accent); }
-  @media (max-width: 900px) { .post { grid-template-columns: 1fr; gap: 0.5rem; } }
+  .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
+  .intro { margin-bottom: 2rem; }
+  .posts { list-style: none; }
+  .posts li { display: grid; grid-template-columns: 8rem 1fr; gap: 1.5rem; padding: 1.1rem 0; border-top: 1px solid var(--rule); }
+  .posts time { color: var(--muted); font-size: 0.9rem; padding-top: 0.15rem; }
+  .post-title { font-weight: 700; font-size: 1.1rem; color: var(--ink); text-decoration: none; }
+  .post-title:hover { color: var(--accent); text-decoration: underline; }
+  .posts p { color: var(--ink-soft); }
+  @media (max-width: 640px) { .posts li { grid-template-columns: 1fr; gap: 0.2rem; } }
 </style>
