@@ -6,6 +6,7 @@ status: Active
 tags: [PWA, JavaScript]
 repo: https://github.com/mifarosa/ekunye
 demo: https://ekunye.mifarosa.com
+icon: /apps/ekunye.png
 featured: true
 order: 4
 ---

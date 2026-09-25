@@ -2,16 +2,25 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import ProjectItem from '../components/ProjectItem.astro';
+import AppTiles from '../components/AppTiles.astro';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const apps = projects.filter((p) => p.data.demo);
 ---
 <BaseLayout title="Projects" description="Personal software projects by Mehmet Faruk Gül: backend services, developer tools and apps.">
   <h1 class="page-title">Projects</h1>
   <p class="lede intro">Things I build outside work, from backend services to small tools that solve my own problems.</p>
+  {apps.length > 0 && (
+    <section class="apps-block" aria-labelledby="apps-title">
+      <h2 id="apps-title" class="section-title">Apps</h2>
+      <AppTiles apps={apps} />
+    </section>
+  )}
   {projects.map((p) => <ProjectItem project={p} headingLevel="h2" />)}
 </BaseLayout>
 
 <style>
   .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
   .intro { margin-bottom: 2.5rem; }
+  .apps-block { margin-bottom: 3rem; }
 </style>

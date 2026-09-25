@@ -3,10 +3,12 @@ import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionTitle from '../components/SectionTitle.astro';
 import ProjectItem from '../components/ProjectItem.astro';
+import AppTiles from '../components/AppTiles.astro';
 import { profile, experience, skills, certifications, education, leadership } from '../data/profile';
 
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
 const featured = projects.filter((p) => p.data.featured);
+const apps = projects.filter((p) => p.data.demo);
 
 // "Right now" facts, derived from the data so they stay in sync
 const currentJob = experience[0];
@@ -29,7 +31,7 @@ const building = projects.filter((p) => p.data.status === 'Active');
           <dt>Building</dt>
           <dd>
             {building.map((p, i) => (
-              <>{i > 0 && ', '}<a href={p.data.repo ?? '/projects'} rel="noopener">{p.data.title}</a></>
+              <>{i > 0 && ', '}<a href={p.data.demo ?? p.data.repo ?? '/projects'} rel="noopener">{p.data.title}</a></>
             ))}
             {' '}and <a href="/projects">a few other side projects</a>
           </dd>
@@ -65,6 +67,14 @@ const building = projects.filter((p) => p.data.status === 'Active');
       ))}
     </ol>
   </section>
+
+  <!-- APPS -->
+  {apps.length > 0 && (
+    <section id="apps" class="section">
+      <SectionTitle id="apps" title="Apps" />
+      <AppTiles apps={apps} />
+    </section>
+  )}
 
   <!-- PROJECTS -->
   <section id="projects" class="section">

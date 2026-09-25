@@ -13,6 +13,7 @@ const projects = defineCollection({
     tags: z.array(z.string()),
     repo: z.string().url().optional(),
     demo: z.string().url().optional(),
+    icon: z.string().optional(),               // app icon under public/, shown in Apps
     featured: z.boolean().default(false),
     order: z.number().default(100),
   }),

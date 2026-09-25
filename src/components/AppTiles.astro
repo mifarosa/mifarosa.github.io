@@ -1,0 +1,66 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+// Tiles for projects that have a live app (a `demo` URL); each tile opens the app
+interface Props {
+  apps: CollectionEntry<'projects'>[];
+}
+const { apps } = Astro.props;
+---
+<ul class="apps">
+  {apps.map(({ data }) => (
+    <li>
+      <a class="app" href={data.demo} rel="noopener">
+        {data.icon
+          ? <img class="app-icon" src={data.icon} alt="" width="48" height="48" loading="lazy" />
+          : <span class="app-icon app-initial" aria-hidden="true">{data.title.charAt(0)}</span>}
+        <span class="app-name">{data.title}</span>
+        <span class="app-desc">{data.subtitle}</span>
+        <span class="button app-open">Open app <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+  ))}
+</ul>
+
+<style>
+  .apps {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+    gap: 1rem;
+  }
+  .app {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
+    padding: 1.1rem;
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+  }
+  .app:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .app:hover .app-open { filter: brightness(1.08); }
+  .app-icon {
+    width: 3rem; height: 3rem;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+  }
+  .app-initial {
+    display: grid; place-items: center;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 1.4rem; font-weight: 800;
+  }
+  .app-name { font-size: 1.1rem; font-weight: 700; line-height: 1.3; }
+  .app-desc { color: var(--muted); font-size: 0.9rem; margin: 0.25rem 0 1rem; }
+  .app-open { margin-top: auto; font-size: 0.9rem; padding: 0.45rem 0.9rem; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .app { transition: none; }
+    .app:hover { transform: none; }
+  }
+</style>
