@@ -1,7 +1,7 @@
 ---
 title: Ekünye
 subtitle: Tap-to-copy personal info on your phone
-period: 2026
+period: "2026"
 status: Active
 tags: [PWA, JavaScript]
 repo: https://github.com/mifarosa/ekunye
