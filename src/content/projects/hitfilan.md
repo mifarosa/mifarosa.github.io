@@ -5,7 +5,7 @@ period: "2026"
 status: Active
 tags: [PWA, JavaScript, Web Audio, Wake Lock]
 repo: https://github.com/mifarosa/HitFilan
-demo: https://mifarosa.com/HitFilan/
+demo: https://hitfilan.mifarosa.com
 icon: /apps/hitfilan.png
 featured: true
 order: 5
