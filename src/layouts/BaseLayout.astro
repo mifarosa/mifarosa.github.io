@@ -210,6 +210,20 @@ const apps = (await getCollection('projects'))
     padding: 3.5rem 1.5rem 2rem;
     margin: 0 -1.5rem;
     display: flex; flex-direction: column; gap: 2.25rem;
+    /* thin scrollbar that only shows while the sidebar is hovered */
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .sidebar:hover { scrollbar-color: var(--rule) transparent; }
+  .sidebar::-webkit-scrollbar { width: 6px; }
+  .sidebar::-webkit-scrollbar-thumb { background: transparent; border-radius: 3px; }
+  .sidebar:hover::-webkit-scrollbar-thumb { background: var(--rule); }
+  .sidebar::-webkit-scrollbar-thumb:hover { background: var(--muted); }
+
+  /* short windows: tighten spacing so the sidebar rarely needs to scroll */
+  @media (min-width: 901px) and (max-height: 800px) {
+    .sidebar { padding-top: 2rem; padding-bottom: 1rem; gap: 1.25rem; }
+    .sidebar .toc a { padding-top: 0.15rem; padding-bottom: 0.15rem; }
   }
   .name {
     display: block;
