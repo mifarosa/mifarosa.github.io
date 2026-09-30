@@ -206,7 +206,9 @@ const apps = (await getCollection('projects'))
     position: sticky; top: 0;
     height: 100vh;
     overflow-y: auto;
-    padding: 3.5rem 0 2rem;
+    /* side padding leaves room for the launcher glow, which the scroll container would otherwise clip */
+    padding: 3.5rem 1.5rem 2rem;
+    margin: 0 -1.5rem;
     display: flex; flex-direction: column; gap: 2.25rem;
   }
   .name {
@@ -350,6 +352,7 @@ const apps = (await getCollection('projects'))
     .sidebar {
       position: static; height: auto; overflow: visible;
       padding: 2rem 0 1.25rem;
+      margin: 0;
       gap: 1.25rem;
       border-bottom: 1px solid var(--rule);
     }
