@@ -1,5 +1,7 @@
 ---
 import '../styles/global.css';
+import { getCollection } from 'astro:content';
+import AppTiles from '../components/AppTiles.astro';
 import { profile, contact } from '../data/profile';
 
 interface Props {
@@ -23,13 +25,17 @@ const isHome = path === '/';
 const nav = [
   { id: 'about', label: 'About' },
   { id: 'experience', label: 'Experience' },
-  { id: 'apps', label: 'Apps' },
   { id: 'projects', label: 'Projects' },
   { id: 'skills', label: 'Skills' },
   { id: 'education', label: 'Education' },
 ].map((n) => ({ ...n, href: isHome ? `#${n.id}` : `/#${n.id}` }));
 
 const year = new Date().getFullYear();
+
+// Projects with a live app (a `demo` URL) show up in the Apps launcher
+const apps = (await getCollection('projects'))
+  .filter((p) => p.data.demo)
+  .sort((a, b) => a.data.order - b.data.order);
 ---
 <!doctype html>
 <html lang={lang}>
@@ -76,6 +82,16 @@ const year = new Date().getFullYear();
           <p class="place">{profile.location}</p>
         </div>
 
+        {apps.length > 0 && (
+          <button type="button" class="launcher-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="launcher">
+            <span class="dots" aria-hidden="true">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </span>
+            <span class="launcher-text">Apps</span>
+            <span class="launcher-count" aria-label={`${apps.length} apps`}>{apps.length}</span>
+          </button>
+        )}
+
         <nav aria-label="Sections" class="toc">
           <ul>
             {nav.map((n) => (
@@ -105,6 +121,17 @@ const year = new Date().getFullYear();
         <slot />
       </main>
     </div>
+
+    {apps.length > 0 && (
+      <dialog id="launcher" class="launcher" aria-labelledby="launcher-title">
+        <div class="launcher-head">
+          <h2 id="launcher-title">Apps</h2>
+          <button type="button" class="launcher-close" aria-label="Close apps">✕</button>
+        </div>
+        <p class="launcher-sub">Small tools I built and run. Each opens in its own tab.</p>
+        <AppTiles apps={apps} />
+      </dialog>
+    )}
 
     <script>
       // Theme toggle: remembers the visitor's choice
@@ -138,6 +165,27 @@ const year = new Date().getFullYear();
           { rootMargin: '-20% 0px -70% 0px' }
         );
         byId.forEach((_, id) => { const el = id && document.getElementById(id); if (el) observer.observe(el); });
+      }
+
+      // Apps launcher: opens the dialog growing out of the button
+      const launchBtn = document.querySelector<HTMLButtonElement>('.launcher-btn');
+      const dialog = document.querySelector<HTMLDialogElement>('#launcher');
+      if (launchBtn && dialog) {
+        const close = () => dialog.close();
+        launchBtn.addEventListener('click', () => {
+          const r = launchBtn.getBoundingClientRect();
+          dialog.style.setProperty('--ox', `${r.left + r.width / 2}px`);
+          dialog.style.setProperty('--oy', `${r.top + r.height / 2}px`);
+          dialog.showModal();
+          launchBtn.setAttribute('aria-expanded', 'true');
+        });
+        dialog.addEventListener('close', () => launchBtn.setAttribute('aria-expanded', 'false'));
+        dialog.querySelector('.launcher-close')?.addEventListener('click', close);
+        // Click on the backdrop (outside the panel) or on an app tile closes it
+        dialog.addEventListener('click', (e) => {
+          const t = e.target as HTMLElement;
+          if (t === dialog || t.closest('.app')) close();
+        });
       }
     </script>
   </body>
@@ -203,6 +251,99 @@ const year = new Date().getFullYear();
 
   main { padding: 3.5rem 0 6rem; max-width: 46rem; min-width: 0; }
 
+  /* ---------- Apps launcher ---------- */
+  .launcher-btn {
+    position: relative;
+    display: flex; align-items: center; gap: 0.75rem;
+    width: 100%;
+    font: inherit; font-weight: 700; font-size: 1rem;
+    color: #fff;
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, #6b3df0));
+    border: 0; border-radius: 12px;
+    padding: 0.7rem 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+    transition: transform 0.18s, box-shadow 0.18s;
+  }
+  :root[data-theme='dark'] .launcher-btn { color: #1a0d13; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .launcher-btn { color: #1a0d13; } }
+  .launcher-btn::after {
+    content: ''; position: absolute; inset: 0; border-radius: inherit;
+    animation: launcher-pulse 2.8s ease-out infinite;
+    pointer-events: none;
+  }
+  .launcher-btn:hover, .launcher-btn:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .launcher-btn:active { transform: translateY(0) scale(0.98); }
+  .dots { display: grid; grid-template-columns: repeat(3, 5px); gap: 3px; }
+  .dots i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .launcher-btn:hover .dots i { animation: dot-wave 0.9s ease-in-out infinite; }
+  .launcher-btn:hover .dots i:nth-child(2), .launcher-btn:hover .dots i:nth-child(4) { animation-delay: 0.08s; }
+  .launcher-btn:hover .dots i:nth-child(3), .launcher-btn:hover .dots i:nth-child(5), .launcher-btn:hover .dots i:nth-child(7) { animation-delay: 0.16s; }
+  .launcher-btn:hover .dots i:nth-child(6), .launcher-btn:hover .dots i:nth-child(8) { animation-delay: 0.24s; }
+  .launcher-btn:hover .dots i:nth-child(9) { animation-delay: 0.32s; }
+  .launcher-text { flex: 1; text-align: left; }
+  .launcher-count {
+    min-width: 1.5rem; padding: 0 0.4rem;
+    text-align: center; font-size: 0.8rem; line-height: 1.5rem;
+    border-radius: 999px; background: rgba(255, 255, 255, 0.25);
+  }
+  @keyframes launcher-pulse {
+    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
+    70%, 100% { box-shadow: 0 0 0 12px transparent; }
+  }
+  @keyframes dot-wave {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.6); opacity: 0.7; }
+  }
+
+  .launcher {
+    --ox: 50%; --oy: 50%;
+    margin: auto;
+    width: min(40rem, calc(100vw - 2rem));
+    max-height: calc(100vh - 3rem);
+    overflow-y: auto;
+    padding: 1.5rem;
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    transform-origin: var(--ox) var(--oy);
+    opacity: 0; transform: scale(0.3);
+    transition: opacity 0.22s, transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15), overlay 0.32s allow-discrete, display 0.32s allow-discrete;
+  }
+  .launcher[open] { opacity: 1; transform: scale(1); }
+  @starting-style { .launcher[open] { opacity: 0; transform: scale(0.3); } }
+  .launcher::backdrop {
+    background: rgba(10, 12, 16, 0);
+    backdrop-filter: blur(0);
+    transition: background 0.3s, backdrop-filter 0.3s, overlay 0.3s allow-discrete, display 0.3s allow-discrete;
+  }
+  .launcher[open]::backdrop { background: rgba(10, 12, 16, 0.55); backdrop-filter: blur(6px); }
+  @starting-style { .launcher[open]::backdrop { background: rgba(10, 12, 16, 0); backdrop-filter: blur(0); } }
+  .launcher-head { display: flex; align-items: center; justify-content: space-between; }
+  .launcher-head h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; }
+  .launcher-sub { color: var(--muted); font-size: 0.95rem; margin: 0.25rem 0 1.25rem; }
+  .launcher-close {
+    font: inherit; font-size: 1rem; line-height: 1;
+    width: 2.2rem; height: 2.2rem; border-radius: 50%;
+    color: var(--ink-soft); background: var(--surface);
+    border: 1px solid var(--rule); cursor: pointer;
+  }
+  .launcher-close:hover { color: var(--accent); border-color: var(--accent); }
+  .launcher[open] :global(.apps li) { animation: tile-in 0.4s both cubic-bezier(0.2, 0.9, 0.3, 1.15); }
+  .launcher[open] :global(.apps li:nth-child(2)) { animation-delay: 0.06s; }
+  .launcher[open] :global(.apps li:nth-child(3)) { animation-delay: 0.12s; }
+  .launcher[open] :global(.apps li:nth-child(4)) { animation-delay: 0.18s; }
+  .launcher[open] :global(.apps li:nth-child(n+5)) { animation-delay: 0.24s; }
+  @keyframes tile-in { from { opacity: 0; transform: translateY(14px) scale(0.92); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .launcher-btn::after, .launcher-btn:hover .dots i, .launcher[open] :global(.apps li) { animation: none; }
+    .launcher, .launcher::backdrop, .launcher-btn { transition: none; }
+  }
+
   /* ---------- Small screens: sidebar becomes a header ---------- */
   @media (max-width: 900px) {
     .shell { grid-template-columns: 1fr; gap: 0; padding: 0 1.25rem; }
@@ -219,5 +360,7 @@ const year = new Date().getFullYear();
     .sidebar-foot { margin-top: 0; }
     .copy { display: none; }
     main { padding-top: 2rem; }
+    .launcher-btn { width: auto; align-self: flex-start; }
+    .launcher { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0; max-height: 85vh; transform-origin: 50% 100%; }
   }
 </style>
