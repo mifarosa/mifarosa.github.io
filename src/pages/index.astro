@@ -16,6 +16,14 @@ const learning = skills.find((s) => s.group === 'Currently learning')?.items ?? 
 const building = projects.filter((p) => p.data.status === 'Active');
 ---
 <BaseLayout>
+  <!-- APPS -->
+  {apps.length > 0 && (
+    <section id="apps" class="section">
+      <SectionTitle id="apps" title="Featured apps" />
+      <AppTiles apps={apps} />
+    </section>
+  )}
+
   <!-- ABOUT -->
   <section id="about" class="section intro">
     <p class="headline">{profile.headline}</p>
@@ -45,14 +53,6 @@ const building = projects.filter((p) => p.data.status === 'Active');
       )}
     </dl>
   </section>
-
-  <!-- APPS -->
-  {apps.length > 0 && (
-    <section id="apps" class="section">
-      <SectionTitle id="apps" title="Apps" />
-      <AppTiles apps={apps} />
-    </section>
-  )}
 
   <!-- EXPERIENCE -->
   <section id="experience" class="section">
@@ -134,7 +134,6 @@ const building = projects.filter((p) => p.data.status === 'Active');
 
 <style>
   /* ---------- Intro ---------- */
-  .intro { padding-top: 1rem; }
   .headline {
     font-size: clamp(1.75rem, 3.4vw, 2.5rem);
     font-weight: 800;
