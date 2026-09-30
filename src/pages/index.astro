@@ -46,6 +46,14 @@ const building = projects.filter((p) => p.data.status === 'Active');
     </dl>
   </section>
 
+  <!-- APPS -->
+  {apps.length > 0 && (
+    <section id="apps" class="section">
+      <SectionTitle id="apps" title="Apps" />
+      <AppTiles apps={apps} />
+    </section>
+  )}
+
   <!-- EXPERIENCE -->
   <section id="experience" class="section">
     <SectionTitle id="experience" title="Experience" />
@@ -67,14 +75,6 @@ const building = projects.filter((p) => p.data.status === 'Active');
       ))}
     </ol>
   </section>
-
-  <!-- APPS -->
-  {apps.length > 0 && (
-    <section id="apps" class="section">
-      <SectionTitle id="apps" title="Apps" />
-      <AppTiles apps={apps} />
-    </section>
-  )}
 
   <!-- PROJECTS -->
   <section id="projects" class="section">

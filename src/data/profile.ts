@@ -6,9 +6,9 @@ export const profile = {
   title: 'Software Engineer / Computer Engineer',
   location: 'İstanbul, Türkiye',
   // Large opening sentence at the top of the home page
-  headline: 'I build backend services with Java and Python at Huawei, and small tools of my own in my spare time.',
+  headline: 'I develop and fix backend services with Java and Python at Huawei, write test automation, and build small tools of my own in my spare time.',
   summary:
-    'Software Engineer with a degree in Computer Engineering, building backend systems with Java and Python across 6–7 enterprise projects at Huawei. Experienced in taking task requirements, creating system designs, writing implementation code and running test procedures. Passionate about exploring new technologies and building personal side projects.',
+    'Software Engineer with a degree in Computer Engineering, working on existing enterprise backend services in Java and Python across 6–7 projects at Huawei. I add new features, ship updates and bug fixes, write test cases, and build mobile and web test automation. Passionate about exploring new technologies and building personal side projects.',
   // Public version of the CV, placed in public/cv/ (leave empty to hide the button)
   cvUrl: '', // e.g. '/cv/Mehmet_Faruk_Gul_CV.pdf' after adding the file to public/cv/
 };
@@ -38,9 +38,10 @@ export const experience: Experience[] = [
     type: 'Full-time',
     points: [
       'Work across 6–7 enterprise projects using Java, Python and SQL.',
+      'Develop new features and ship updates and bug fixes on services that are already running in production.',
       'Analyze incoming task requirements and prepare functional technical designs.',
       'Implement backend logic and APIs based on approved system designs.',
-      'Run test processes with Playwright for web components and AirTest for mobile.',
+      'Write test cases and build mobile and web test automation with Playwright (web) and AirTest (mobile).',
       'Manage database queries and data structures with PostgreSQL and MyBatis.',
       'Take part in code reviews, unit testing with JUnit and Agile sprint workflows.',
     ],
