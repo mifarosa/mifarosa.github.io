@@ -5,6 +5,8 @@ period: Apr 2026 – Present
 status: Active
 tags: [Java 21, Spring Boot, Spring Data JPA, PostgreSQL, PDFBox, Apache POI, Vue 3, Vite]
 repo: https://github.com/mifarosa/aybashim
+demo: https://aybashim.mifarosa.com
+icon: /apps/aybashim.svg
 featured: true
 order: 1
 ---
