@@ -3,16 +3,21 @@ import '../styles/global.css';
 import { getCollection } from 'astro:content';
 import AppTiles from '../components/AppTiles.astro';
 import { profile, contact } from '../data/profile';
+import { goatcounterUrl } from '../data/analytics';
 
 interface Props {
   title?: string;
   description?: string;
   lang?: string;   // language of the page content, e.g. 'tr' for Turkish posts
+  noindex?: boolean;  // keep the page out of search engines
+  track?: boolean;    // count visits with GoatCounter (off for the admin page)
 }
 
 const {
   title,
   lang = 'en',
+  noindex = false,
+  track = true,
   description = 'Mehmet Faruk Gül, Software Engineer at Huawei. Backend development with Java and Python, personal projects and writing.',
 } = Astro.props;
 
@@ -45,6 +50,7 @@ const apps = (await getCollection('projects'))
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14161b" media="(prefers-color-scheme: dark)" />
@@ -70,6 +76,11 @@ const apps = (await getCollection('projects'))
         if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
       } catch (e) {}
     </script>
+
+    <!-- Visitor stats (GoatCounter: no cookies, no personal data). Only on the live site. -->
+    {import.meta.env.PROD && track && (
+      <script is:inline async data-goatcounter={`${goatcounterUrl}/count`} src="https://gc.zgo.at/count.js"></script>
+    )}
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
