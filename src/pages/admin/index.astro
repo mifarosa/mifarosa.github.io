@@ -1,0 +1,569 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { goatcounterUrl, adminApiUrl } from '../../data/analytics';
+
+// Private admin panel: not linked anywhere, not indexed and not counted itself.
+// Sign-in goes through the admin worker (worker/) with GitHub; only the site owner gets in.
+// Stats come from GoatCounter through the same worker, which keeps the API key.
+const ranges = [
+  { days: 7, label: '7 gün' },
+  { days: 30, label: '30 gün' },
+  { days: 90, label: '90 gün' },
+  { days: 365, label: '1 yıl' },
+];
+
+const lists = [
+  { id: 'pages', title: 'Sayfalar' },
+  { id: 'events', title: 'Tıklamalar' },
+  { id: 'refs', title: 'Nereden geldiler' },
+  { id: 'locations', title: 'Ülkeler' },
+  { id: 'browsers', title: 'Tarayıcılar' },
+  { id: 'systems', title: 'İşletim sistemleri' },
+  { id: 'sizes', title: 'Ekran' },
+];
+
+// Every post, drafts included; read counts are filled in on the page
+const posts = (await getCollection('blog'))
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
+  .map((p) => ({ id: p.id, title: p.data.title, date: p.data.date, lang: p.data.lang, draft: p.data.draft }));
+const dateFmt = (d: Date) => d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
+---
+<BaseLayout title="Admin" lang="tr" noindex track={false}>
+  <h1 class="page-title">Admin</h1>
+
+  {adminApiUrl ? (
+    <section id="login" hidden>
+      <p class="lede">Panel, site sahibinin GitHub hesabıyla açılır.</p>
+      <button type="button" id="login-btn" class="button">GitHub ile giriş yap</button>
+      <p id="login-error" class="error" role="alert" hidden></p>
+    </section>
+  ) : (
+    <section class="lede">
+      <p>Panel henüz kurulmadı: GitHub girişini yapan Cloudflare Worker'ın adresi
+      <code>src/data/analytics.ts</code> içindeki <code>adminApiUrl</code> değerine yazılınca açılır.
+      Adımlar README'nin "Admin" bölümünde.</p>
+    </section>
+  )}
+
+  <section id="dash" hidden>
+    <nav class="tabs" aria-label="Panel bölümleri">
+      <button type="button" class="tab" data-tab="stats" aria-current="page">İstatistikler</button>
+      <button type="button" class="tab" data-tab="posts">Blog yazıları</button>
+      <a class="tab" href="/admin/cms/">İçerik düzenle <span aria-hidden="true">↗</span></a>
+    </nav>
+
+      <div class="toolbar">
+        <div class="ranges" role="group" aria-label="Zaman aralığı">
+          {ranges.map((r) => (
+            <button type="button" data-days={r.days} aria-pressed={r.days === 30 ? 'true' : 'false'}>{r.label}</button>
+          ))}
+        </div>
+        <button type="button" id="refresh" class="ghost">Yenile</button>
+      </div>
+      <p id="status" class="status-line" aria-live="polite"></p>
+
+    <div id="tab-stats">
+
+      <div class="kpis">
+        <div class="kpi"><span class="kpi-label">Ziyaretçi</span><span id="kpi-total" class="kpi-value">–</span></div>
+        <div class="kpi"><span class="kpi-label">Bugün</span><span id="kpi-today" class="kpi-value">–</span></div>
+        <div class="kpi"><span class="kpi-label">Günlük ortalama</span><span id="kpi-avg" class="kpi-value">–</span></div>
+        <div class="kpi"><span class="kpi-label">En yoğun gün</span><span id="kpi-best" class="kpi-value">–</span><span id="kpi-best-day" class="kpi-sub"></span></div>
+      </div>
+
+      <figure class="chart-card">
+        <figcaption id="chart-title">Günlük ziyaretçi</figcaption>
+        <div class="chart-wrap">
+          <div id="chart" class="chart" role="img" aria-label="Günlük ziyaretçi grafiği"></div>
+          <div id="tip" class="tip" hidden></div>
+        </div>
+        <div class="axis"><span id="axis-start"></span><span id="axis-end"></span></div>
+      </figure>
+
+      <div class="lists">
+        {lists.map((l) => (
+          <section class="list-card" aria-labelledby={`h-${l.id}`}>
+            <h2 id={`h-${l.id}`}>{l.title}</h2>
+            <ol id={`list-${l.id}`} class="bars"><li class="empty">Yükleniyor…</li></ol>
+          </section>
+        ))}
+      </div>
+    </div>
+
+    <div id="tab-posts" hidden>
+      <p class="tab-actions"><a class="button" href="/admin/cms/#/collections/blog/new">Yeni yazı</a></p>
+      {posts.length ? (
+        <div class="table-wrap">
+          <table class="posts">
+            <thead>
+              <tr><th scope="col">Yazı</th><th scope="col">Tarih</th><th scope="col" class="num">Okunma</th><th scope="col"><span class="visually-hidden">İşlemler</span></th></tr>
+            </thead>
+            <tbody id="posts-body">
+              {posts.map((p) => (
+                <tr data-path={`/blog/${p.id}`}>
+                  <td>
+                    <span class="post-name">{p.title}</span>
+                    {p.draft && <span class="badge">Taslak</span>}
+                    {p.lang !== 'en' && <span class="badge">{p.lang.toUpperCase()}</span>}
+                  </td>
+                  <td class="nowrap"><time datetime={p.date.toISOString()}>{dateFmt(p.date)}</time></td>
+                  <td class="num reads">–</td>
+                  <td class="nowrap actions">
+                    <a href={`/admin/cms/#/collections/blog/entries/${p.id}`}>Düzenle</a>
+                    {!p.draft && <a href={`/blog/${p.id}`}>Gör</a>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p class="lede">Henüz blog yazısı yok.</p>
+      )}
+      <p class="hint">Okunma sayıları yukarıda seçili zaman aralığı içindir. Taslaklar sitede görünmediği için okunmaz.</p>
+    </div>
+
+    <div class="settings">
+      <label class="check">
+        <input type="checkbox" id="skip-me" />
+        Bu tarayıcıdaki kendi ziyaretlerimi sayma
+      </label>
+      <a href={goatcounterUrl} rel="noopener">GoatCounter panelini aç</a>
+      <button type="button" id="logout" class="ghost small">Çıkış yap</button>
+    </div>
+  </section>
+
+  <noscript><p class="lede">Bu sayfa JavaScript gerektirir.</p></noscript>
+</BaseLayout>
+
+<script define:vars={{ adminApi: adminApiUrl }}>
+  const TOKEN_KEY = 'admin-gh-token';
+  const RANGE_KEY = 'gc-range';
+  const TAB_KEY = 'admin-tab';
+  const $ = (id) => document.getElementById(id);
+
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+  };
+  // Keys left by the password-based versions of this page
+  ['gc-token', 'gc-key'].forEach(store.del);
+  try { sessionStorage.removeItem('gc-key'); } catch (e) {}
+
+  const nf = new Intl.NumberFormat('tr-TR');
+  const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' });
+  const longFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'long', year: 'numeric', weekday: 'short' });
+
+  const sizeNames = {
+    phone: 'Telefon', largephone: 'Büyük telefon', tablet: 'Tablet',
+    desktop: 'Masaüstü', desktophd: 'Masaüstü (HD)', unknown: 'Bilinmiyor',
+  };
+
+  let days = Number(store.get(RANGE_KEY)) || 30;
+  let loading = 0;   // id of the current load, so a stale one stops writing
+
+  class AuthError extends Error {}
+
+  // GoatCounter wants RFC 3339 without milliseconds
+  const iso = (d) => d.toISOString().replace(/\.\d{3}Z$/, 'Z');
+
+  async function call(path, params) {
+    const url = new URL(`${adminApi}${path}`);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, String(v)));
+    const res = await fetch(url, { headers: { Authorization: `Bearer ${store.get(TOKEN_KEY)}` } });
+    if (res.status === 401 || res.status === 403) throw new AuthError('Oturumun sona ermiş, tekrar giriş yap.');
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error ? `İstatistikler alınamadı: ${body.error}` : `İstatistikler alınamadı (${res.status}).`);
+    }
+    return res.json();
+  }
+
+  // ---------- Sign-in (popup handshake of the admin worker, same as Sveltia CMS) ----------
+
+  function signIn() {
+    const workerOrigin = new URL(adminApi).origin;
+    const url = new URL(`${adminApi}/auth`);
+    url.search = new URLSearchParams({ provider: 'github', site_id: location.hostname, scope: 'public_repo' }).toString();
+    const popup = window.open(url, 'admin-login', 'width=600,height=700');
+    if (!popup) return showLogin('Açılır pencere engellendi; bu site için izin ver ve tekrar dene.');
+
+    return new Promise((resolve) => {
+      const onMessage = (e) => {
+        if (e.origin !== workerOrigin || typeof e.data !== 'string') return;
+        if (e.data === 'authorizing:github') {
+          e.source.postMessage('authorizing:github', workerOrigin);
+          return;
+        }
+        const m = e.data.match(/^authorization:github:(success|error):(.*)$/s);
+        if (!m) return;
+        window.removeEventListener('message', onMessage);
+        popup.close();
+        let content = {};
+        try { content = JSON.parse(m[2]); } catch (err) {}
+        if (m[1] === 'success' && content.token) {
+          store.set(TOKEN_KEY, content.token);
+          load();
+        } else {
+          showLogin(content.error || 'Giriş yapılamadı.');
+        }
+        resolve();
+      };
+      window.addEventListener('message', onMessage);
+    });
+  }
+
+  function showLogin(message) {
+    $('dash').hidden = true;
+    const login = $('login');
+    if (!login) return;   // worker not configured yet
+    login.hidden = false;
+    const err = $('login-error');
+    err.hidden = !message;
+    err.textContent = message || '';
+  }
+
+  function showDash() {
+    $('login').hidden = true;
+    $('dash').hidden = false;
+    document.querySelectorAll('.ranges button').forEach((b) =>
+      b.setAttribute('aria-pressed', String(Number(b.dataset.days) === days)));
+  }
+
+  // ---------- Tabs ----------
+
+  function showTab(name) {
+    document.querySelectorAll('.tab[data-tab]').forEach((t) =>
+      t.dataset.tab === name ? t.setAttribute('aria-current', 'page') : t.removeAttribute('aria-current'));
+    $('tab-stats').hidden = name !== 'stats';
+    $('tab-posts').hidden = name !== 'posts';
+    store.set(TAB_KEY, name);
+  }
+
+  // ---------- Rendering ----------
+
+  function renderList(id, rows, label) {
+    const ol = $(`list-${id}`);
+    ol.replaceChildren();
+    if (!rows.length) {
+      const li = document.createElement('li');
+      li.className = 'empty';
+      li.textContent = 'Henüz veri yok';
+      ol.append(li);
+      return;
+    }
+    const max = Math.max(...rows.map((r) => r.count), 1);
+    rows.forEach((r) => {
+      const li = document.createElement('li');
+      li.style.setProperty('--w', `${(r.count / max) * 100}%`);
+      const name = document.createElement('span');
+      name.className = 'bar-name';
+      name.textContent = label(r);
+      name.title = name.textContent;
+      const count = document.createElement('span');
+      count.className = 'bar-count';
+      count.textContent = nf.format(r.count);
+      li.append(name, count);
+      ol.append(li);
+    });
+  }
+
+  function renderChart(series) {
+    // Long ranges are summed per week so the bars stay readable
+    const weekly = series.length > 90;
+    let points = series;
+    if (weekly) {
+      points = [];
+      for (let i = 0; i < series.length; i += 7) {
+        const chunk = series.slice(i, i + 7);
+        points.push({ day: chunk[0].day, end: chunk[chunk.length - 1].day, count: chunk.reduce((s, p) => s + p.count, 0) });
+      }
+    }
+    $('chart-title').textContent = weekly ? 'Haftalık ziyaretçi' : 'Günlük ziyaretçi';
+
+    const chart = $('chart');
+    chart.replaceChildren();
+    chart.classList.toggle('dense', points.length > 45);
+    const max = Math.max(...points.map((p) => p.count), 1);
+    points.forEach((p) => {
+      const col = document.createElement('div');
+      col.className = 'col';
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.height = p.count ? `${Math.max((p.count / max) * 100, 1.5)}%` : '0';
+      col.append(bar);
+      const when = p.end
+        ? `${dayFmt.format(p.day)} – ${dayFmt.format(p.end)}`
+        : longFmt.format(p.day);
+      col.dataset.tip = `${when}\n${nf.format(p.count)} ziyaretçi`;
+      chart.append(col);
+    });
+    $('axis-start').textContent = points.length ? dayFmt.format(points[0].day) : '';
+    $('axis-end').textContent = points.length ? dayFmt.format(points[points.length - 1].end || points[points.length - 1].day) : '';
+    chart.setAttribute('aria-label', `${weekly ? 'Haftalık' : 'Günlük'} ziyaretçi grafiği, en yüksek ${nf.format(max)}`);
+  }
+
+  // Tooltip follows the hovered column
+  const chartEl = $('chart');
+  const tip = $('tip');
+  chartEl.addEventListener('pointermove', (e) => {
+    const col = e.target.closest('.col');
+    chartEl.querySelectorAll('.col.on').forEach((c) => c !== col && c.classList.remove('on'));
+    if (!col) { tip.hidden = true; return; }
+    col.classList.add('on');
+    tip.textContent = col.dataset.tip;
+    tip.hidden = false;
+    const wrap = chartEl.getBoundingClientRect();
+    const c = col.getBoundingClientRect();
+    const x = c.left - wrap.left + c.width / 2;
+    tip.style.left = `${Math.min(Math.max(x, tip.offsetWidth / 2), wrap.width - tip.offsetWidth / 2)}px`;
+  });
+  chartEl.addEventListener('pointerleave', () => {
+    tip.hidden = true;
+    chartEl.querySelectorAll('.col.on').forEach((c) => c.classList.remove('on'));
+  });
+
+  // Reads per post: GoatCounter paths may or may not end in a slash
+  function renderPosts(hits) {
+    const body = $('posts-body');
+    if (!body) return;
+    const reads = new Map();
+    hits.filter((h) => !h.event).forEach((h) => {
+      const path = h.path.replace(/\/+$/, '');
+      reads.set(path, (reads.get(path) || 0) + h.count);
+    });
+    const rows = [...body.querySelectorAll('tr')];
+    rows.forEach((tr) => {
+      const n = reads.get(tr.dataset.path) || 0;
+      tr.dataset.reads = String(n);
+      tr.querySelector('.reads').textContent = nf.format(n);
+    });
+    // Most read first; ties keep the newest-first order from the build
+    rows.map((tr, i) => [tr, i])
+      .sort(([a, i], [b, j]) => Number(b.dataset.reads) - Number(a.dataset.reads) || i - j)
+      .forEach(([tr]) => body.append(tr));
+  }
+
+  // ---------- Loading ----------
+
+  async function load() {
+    if (!adminApi) return;
+    if (!store.get(TOKEN_KEY)) return showLogin();
+    showDash();
+
+    const id = ++loading;
+    const end = new Date();
+    const start = new Date(end);
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (days - 1));
+    const range = { start: iso(start), end: iso(end) };
+    $('status').textContent = 'Yükleniyor…';
+
+    try {
+      const total = await call('/stats/total', range);
+      if (id !== loading) return;
+
+      const series = (total.stats || []).map((s) => ({ day: new Date(`${s.day}T00:00:00`), count: s.daily || 0 }));
+      const sum = total.total ?? series.reduce((s, p) => s + p.count, 0);
+      const best = series.reduce((b, p) => (p.count > (b?.count ?? -1) ? p : b), null);
+      $('kpi-total').textContent = nf.format(sum);
+      $('kpi-today').textContent = nf.format(series.length ? series[series.length - 1].count : 0);
+      $('kpi-avg').textContent = nf.format(Math.round(sum / Math.max(series.length, 1)));
+      $('kpi-best').textContent = best && best.count ? nf.format(best.count) : '–';
+      $('kpi-best-day').textContent = best && best.count ? longFmt.format(best.day) : '';
+      renderChart(series);
+
+      // Page views and click events come back together; split them
+      const hits = (await call('/stats/hits', { ...range, limit: 200 })).hits || [];
+      if (id !== loading) return;
+      renderList('pages', hits.filter((r) => !r.event).slice(0, 10), (r) => r.title ? `${r.path} · ${r.title}` : r.path);
+      renderList('events', hits.filter((r) => r.event).slice(0, 10), (r) => r.path);
+      renderPosts(hits);
+
+      // One request at a time: the API is rate limited
+      const lists = [
+        ['refs', '/stats/toprefs', (r) => r.name || 'Doğrudan / bilinmiyor'],
+        ['locations', '/stats/locations', (r) => r.name || 'Bilinmiyor'],
+        ['browsers', '/stats/browsers', (r) => r.name || 'Bilinmiyor'],
+        ['systems', '/stats/systems', (r) => r.name || 'Bilinmiyor'],
+        ['sizes', '/stats/sizes', (r) => sizeNames[r.id] || sizeNames[r.name] || r.name || 'Bilinmiyor'],
+      ];
+      for (const [listId, path, label] of lists) {
+        const data = await call(path, { ...range, limit: 10 });
+        if (id !== loading) return;
+        renderList(listId, data.stats || [], label);
+      }
+      $('status').textContent = `Son güncelleme: ${new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}`;
+    } catch (err) {
+      if (id !== loading) return;
+      if (err instanceof AuthError) {
+        store.del(TOKEN_KEY);
+        return showLogin(err.message);
+      }
+      $('status').textContent = err instanceof TypeError
+        ? 'Sunucuya ulaşılamadı. İnternet bağlantını ya da reklam engelleyiciyi kontrol et.'
+        : err.message;
+    }
+  }
+
+  // ---------- Controls ----------
+
+  $('login-btn')?.addEventListener('click', signIn);
+
+  document.querySelectorAll('.tab[data-tab]').forEach((t) => t.addEventListener('click', () => showTab(t.dataset.tab)));
+  showTab(store.get(TAB_KEY) === 'posts' ? 'posts' : 'stats');
+
+  document.querySelectorAll('.ranges button').forEach((b) => b.addEventListener('click', () => {
+    days = Number(b.dataset.days);
+    store.set(RANGE_KEY, String(days));
+    load();
+  }));
+
+  $('refresh').addEventListener('click', load);
+
+  $('logout').addEventListener('click', () => {
+    store.del(TOKEN_KEY);
+    showLogin();
+  });
+
+  // count.js skips counting when this flag is set (same as visiting /#toggle-goatcounter)
+  const skip = $('skip-me');
+  skip.checked = store.get('skipgc') === 't';
+  skip.addEventListener('change', () => (skip.checked ? store.set('skipgc', 't') : store.del('skipgc')));
+
+  load();
+</script>
+
+<style>
+  .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 1.25rem; }
+
+  /* ---------- Sign-in ---------- */
+  #login .button, .tab-actions .button { border: 0; font: inherit; font-weight: 700; cursor: pointer; margin-top: 1rem; }
+  .error { margin-top: 0.75rem; color: var(--accent); font-weight: 500; }
+  .hint { margin-top: 1rem; font-size: 0.85rem; color: var(--muted); }
+
+  /* ---------- Tabs ---------- */
+  .tabs { display: flex; flex-wrap: wrap; gap: 0.25rem 1.25rem; border-bottom: 1px solid var(--rule); margin-bottom: 1.25rem; }
+  .tab {
+    font: inherit; font-size: 0.95rem;
+    color: var(--ink-soft); background: none; border: 0;
+    border-bottom: 2px solid transparent; margin-bottom: -1px;
+    padding: 0.45rem 0; cursor: pointer; text-decoration: none;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab[aria-current] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+
+  /* ---------- Posts ---------- */
+  .tab-actions { margin: -0.5rem 0 1rem; }
+  .table-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; }
+  .posts { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .posts th, .posts td { text-align: left; padding: 0.6rem 0.9rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .posts tr:last-child td { border-bottom: 0; }
+  .posts th { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+  .posts .num { text-align: right; }
+  .posts .reads { font-weight: 700; color: var(--ink); }
+  .posts .nowrap { white-space: nowrap; color: var(--ink-soft); }
+  .posts .actions a + a { margin-left: 0.75rem; }
+  .post-name { color: var(--ink); font-weight: 500; }
+  .badge {
+    display: inline-block; margin-left: 0.4rem;
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.02em;
+    color: var(--ink-soft); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 999px; padding: 0 0.45rem;
+  }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  /* ---------- Toolbar ---------- */
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+  .ranges { display: inline-flex; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 3px; }
+  .ranges button {
+    font: inherit; font-size: 0.9rem;
+    color: var(--ink-soft); background: none;
+    border: 0; border-radius: 7px;
+    padding: 0.3rem 0.8rem; cursor: pointer;
+  }
+  .ranges button:hover { color: var(--ink); }
+  .ranges button[aria-pressed='true'] { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  .ghost {
+    font: inherit; font-size: 0.9rem;
+    color: var(--ink-soft); background: var(--surface);
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 0.35rem 0.85rem; cursor: pointer;
+  }
+  .ghost:hover { color: var(--ink); border-color: var(--muted); }
+  .ghost.small { font-size: 0.85rem; padding: 0.25rem 0.7rem; }
+  .status-line { min-height: 1.5em; margin: 0.6rem 0 1.25rem; font-size: 0.85rem; color: var(--muted); }
+
+  /* ---------- KPIs ---------- */
+  .kpis { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+  .kpi {
+    display: grid; gap: 0.15rem; align-content: start;
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 12px;
+    padding: 0.85rem 1rem;
+  }
+  .kpi-label { font-size: 0.8rem; color: var(--muted); }
+  .kpi-sub { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kpi-value { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.01em; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ---------- Chart ---------- */
+  .chart-card, .list-card { background: var(--surface); border: 1px solid var(--rule); border-radius: 12px; padding: 1rem 1.1rem; }
+  .chart-card figcaption, .list-card h2 { font-size: 0.95rem; font-weight: 700; color: var(--ink); margin-bottom: 0.75rem; }
+  .chart-wrap { position: relative; }
+  .chart {
+    height: 11rem;
+    display: flex; align-items: flex-end; gap: 2px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .chart.dense { gap: 1px; }
+  .chart :global(.col) { flex: 1 1 0; height: 100%; display: flex; align-items: flex-end; min-width: 0; cursor: default; }
+  .chart :global(.bar) { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; opacity: 0.85; transition: opacity 0.12s; }
+  .chart.dense :global(.bar) { border-radius: 2px 2px 0 0; }
+  .chart :global(.col.on .bar) { opacity: 1; }
+  .chart:hover :global(.col:not(.on) .bar) { opacity: 0.45; }
+  .tip {
+    position: absolute; bottom: calc(100% - 0.5rem); transform: translateX(-50%);
+    pointer-events: none; white-space: pre; text-align: center;
+    font-size: 0.8rem; line-height: 1.4;
+    color: var(--ink); background: var(--bg);
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 0.35rem 0.6rem;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+  }
+  .axis { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-top: 0.35rem; }
+
+  /* ---------- Ranked lists ---------- */
+  .lists { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; margin-top: 0.75rem; }
+  .list-card { min-width: 0; }
+  .bars { list-style: none; display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .bars :global(li) {
+    position: relative; isolation: isolate;
+    display: flex; justify-content: space-between; gap: 0.75rem;
+    font-size: 0.875rem; padding: 0.2rem 0.5rem;
+  }
+  .bars :global(li)::before {
+    content: ''; position: absolute; inset: 0; z-index: -1;
+    width: var(--w, 0); border-radius: 4px;
+    background: var(--accent-soft);
+  }
+  .bars :global(.bar-name) { color: var(--ink-soft); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+  .bars :global(.bar-count) { color: var(--ink); font-weight: 500; }
+  .bars :global(.empty) { color: var(--muted); }
+
+  /* ---------- Settings ---------- */
+  .settings {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 0.75rem 1.5rem;
+    margin-top: 1.75rem; padding-top: 1.25rem;
+    border-top: 1px solid var(--rule);
+    font-size: 0.9rem; color: var(--ink-soft);
+  }
+  .check { display: inline-flex; align-items: center; gap: 0.5rem; cursor: pointer; }
+  .check input { accent-color: var(--accent); width: 1rem; height: 1rem; }
+
+  @media (max-width: 640px) {
+    .kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .lists { grid-template-columns: 1fr; }
+    .chart { height: 9rem; }
+  }
+</style>

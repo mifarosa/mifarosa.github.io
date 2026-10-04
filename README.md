@@ -14,13 +14,14 @@ npm run build    # static output in dist/
 
 | What | Where |
 | --- | --- |
-| CV content (summary, experience, skills, education) | `src/data/profile.ts` |
+| CV content (summary, experience, skills, education) | `src/data/profile.json` (or edit it in `/admin/cms/`) |
 | Projects (one Markdown file each) | `src/content/projects/` |
 | Blog posts (one Markdown file each) | `src/content/blog/` |
 | Page layout (sidebar, theme toggle) | `src/layouts/BaseLayout.astro` |
 | Reusable pieces (project item, section title) | `src/components/` |
 | Colours, fonts, light and dark themes | `src/styles/global.css` |
 | Static files (CV PDF, favicon, CNAME) | `public/` |
+| Admin panel, content editor, admin worker | `src/pages/admin/`, `worker/` |
 
 ### Add a project
 
@@ -60,13 +61,26 @@ Create `src/content/blog/<slug>.md` with `title`, `description` and `date` in th
 
 Drafts are imported with `draft: true` and stay hidden. Static pages and comments are skipped. The script also writes `scripts/blogger-redirects.csv` with each old post URL and its new address.
 
-## Visitor stats
+## Admin
 
-Visits are counted with [GoatCounter](https://mifarosa.goatcounter.com) on the live site only. The unlisted `/admin` page shows the stats behind a password:
+`/admin` is a private panel (not linked, not indexed). Only the `mifarosa` GitHub account can sign in. It has:
 
-1. Open `/admin#kurulum`, enter a GoatCounter API key (only **Read statistics**) and a password.
-2. Copy the encrypted text it prints into `adminVault` in `src/data/analytics.ts` and deploy.
-3. From then on `/admin` only asks for the password. The password is not stored anywhere; to change it, repeat the steps.
+- **İstatistikler**: visitors, pages, clicks, referrers and more from [GoatCounter](https://mifarosa.goatcounter.com).
+- **Blog yazıları**: every post with its read count.
+- **İçerik düzenle** (`/admin/cms/`): [Sveltia CMS](https://github.com/sveltia/sveltia-cms) for blog posts, projects and the profile/CV (`src/data/profile.json`). Each save is a commit to `main`, which deploys the site.
+
+Sign-in and the stats go through a small Cloudflare Worker in `worker/`. It does the GitHub OAuth exchange and keeps the GoatCounter API key. Visits are counted on the live site only.
+
+### One-time setup
+
+1. **Cloudflare** (free): note the Account ID and create an API token with the "Edit Cloudflare Workers" template.
+2. **GoatCounter**: create an API key with only **Read statistics**.
+3. **Repository secrets** (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `GOATCOUNTER_KEY`.
+4. Run the **Deploy admin worker** workflow (Actions tab). Its log prints the worker URL, e.g. `https://mifarosa-admin.<account>.workers.dev`.
+5. **GitHub OAuth app** (Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `<worker URL>/callback`. Add its Client ID and a new client secret as the `GH_OAUTH_CLIENT_ID` and `GH_OAUTH_CLIENT_SECRET` repository secrets, then run the workflow again.
+6. Put the worker URL in `adminApiUrl` in `src/data/analytics.ts` and deploy the site.
+
+Changing `worker/` redeploys the worker automatically.
 
 ## Deployment
 

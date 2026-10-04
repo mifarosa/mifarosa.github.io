@@ -1,0 +1,45 @@
+name: Deploy admin worker
+
+on:
+  push:
+    branches: [main]
+    paths: ['worker/**', '.github/workflows/deploy-worker.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: admin-worker
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # GitHub does not allow secret names starting with GITHUB_, hence GH_OAUTH_*
+      GITHUB_CLIENT_ID: ${{ secrets.GH_OAUTH_CLIENT_ID }}
+      GITHUB_CLIENT_SECRET: ${{ secrets.GH_OAUTH_CLIENT_SECRET }}
+      GOATCOUNTER_KEY: ${{ secrets.GOATCOUNTER_KEY }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Until Cloudflare is set up this run is a no-op instead of a failure
+      - name: Check Cloudflare credentials
+        if: env.CLOUDFLARE_API_TOKEN == '' || env.CLOUDFLARE_ACCOUNT_ID == ''
+        run: echo "::notice::CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID secrets are not set; skipping deploy."
+
+      - name: Deploy worker and secrets
+        if: env.CLOUDFLARE_API_TOKEN != '' && env.CLOUDFLARE_ACCOUNT_ID != ''
+        working-directory: worker
+        run: |
+          npx --yes wrangler@4 deploy
+          for name in GITHUB_CLIENT_ID GITHUB_CLIENT_SECRET GOATCOUNTER_KEY; do
+            if [ -n "${!name}" ]; then
+              printf '%s' "${!name}" | npx --yes wrangler@4 secret put "$name"
+            else
+              echo "::warning::$name is not set; add it as a repository secret and re-run."
+            fi
+          done

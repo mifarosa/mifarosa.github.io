@@ -1,24 +1,23 @@
 // Single source of truth for CV content shown on the site.
-// Keep this in sync with the CV document when either changes.
+// The data lives in profile.json so it can be edited from the admin panel (/admin/cms);
+// this module only adds types. Keep it in sync with the CV document when either changes.
+import data from './profile.json';
 
-export const profile = {
-  name: 'Mehmet Faruk Gül',
-  title: 'Software Engineer / Computer Engineer',
-  location: 'İstanbul, Türkiye',
-  // Large opening sentence at the top of the home page
-  headline: 'I develop and fix backend services with Java and Python at Huawei, write test automation, and build small tools of my own in my spare time.',
-  summary:
-    'Software Engineer with a degree in Computer Engineering, working on existing enterprise backend services in Java and Python across 6–7 projects at Huawei. I add new features, ship updates and bug fixes, write test cases, and build mobile and web test automation. Passionate about exploring new technologies and building personal side projects.',
-  // Public version of the CV, placed in public/cv/ (leave empty to hide the button)
-  cvUrl: '', // e.g. '/cv/Mehmet_Faruk_Gul_CV.pdf' after adding the file to public/cv/
+export type Profile = {
+  name: string;
+  title: string;
+  location: string;
+  headline: string;   // large opening sentence at the top of the home page
+  summary: string;
+  cvUrl: string;      // public CV under public/cv/, e.g. '/cv/Mehmet_Faruk_Gul_CV.pdf'; empty hides the button
 };
 
-export const contact = {
-  emails: ['m.farukgul@gmail.com', 'mfg@engineer.com'],
-  linkedin: 'https://linkedin.com/in/mfg/',
-  github: ['https://github.com/mifarosa', 'https://github.com/Mastechnology'],
-  blog: 'https://mfgstudiosblog.com',
-  newsletter: 'https://www.linkedin.com/newsletters/patch-incoming-7343972064271175681/',
+export type Contact = {
+  emails: string[];
+  linkedin: string;
+  github: string[];
+  blog: string;
+  newsletter: string;
 };
 
 export type Experience = {
@@ -30,99 +29,13 @@ export type Experience = {
   tags: string[];
 };
 
-export const experience: Experience[] = [
-  {
-    company: 'Huawei',
-    role: 'Software Engineer',
-    period: 'May 2022 – Present',
-    type: 'Full-time',
-    points: [
-      'Work across 6–7 enterprise projects using Java, Python and SQL.',
-      'Develop new features and ship updates and bug fixes on services that are already running in production.',
-      'Analyze incoming task requirements and prepare functional technical designs.',
-      'Implement backend logic and APIs based on approved system designs.',
-      'Write test cases and build mobile and web test automation with Playwright (web) and AirTest (mobile).',
-      'Manage database queries and data structures with PostgreSQL and MyBatis.',
-      'Take part in code reviews, unit testing with JUnit and Agile sprint workflows.',
-    ],
-    tags: ['Java', 'Python', 'SQL', 'PostgreSQL', 'MyBatis', 'Playwright', 'AirTest', 'JUnit', 'Git'],
-  },
-  {
-    company: 'Ne-Ka Elektronik',
-    role: 'Full-Stack Developer',
-    period: 'Feb 2021 – May 2022',
-    type: 'Full-time',
-    points: ['Built desktop applications with PyQt5 and Flask, integrating ROS modules.'],
-    tags: ['Python', 'PyQt5', 'Flask', 'ROS'],
-  },
-  {
-    company: 'Mythology Tech Software R&D',
-    role: 'Computer Engineering Intern',
-    period: 'Aug 2020 – Oct 2020',
-    type: 'Internship',
-    points: ['Created data transmission pipelines using MQTT and RabbitMQ.'],
-    tags: ['MQTT', 'RabbitMQ'],
-  },
-  {
-    company: 'Gurme Soft',
-    role: 'Web Developer',
-    period: 'Sep 2019 – Jun 2020',
-    type: 'Part-time',
-    points: ['Developed custom WordPress invoicing plugins and wrote user documentation.'],
-    tags: ['WordPress', 'PHP'],
-  },
-  {
-    company: 'Orakçı Group of Companies',
-    role: 'Computer Engineering Intern',
-    period: 'Aug 2019 – Sep 2019',
-    type: 'Internship',
-    points: ['Wrote automated birthday notification scripts in Python.'],
-    tags: ['Python', 'Automation'],
-  },
-];
+export type Education = { school: string; degree: string; period: string; detail: string };
+export type Leadership = { org: string; role: string; period: string; detail: string };
 
-export const skills: { group: string; items: string[] }[] = [
-  { group: 'Languages & databases', items: ['Java', 'Python', 'SQL (PostgreSQL)', 'JavaScript', 'C / C++ / C# (basic)'] },
-  { group: 'Frameworks & tools', items: ['Django', 'FastAPI', 'Flask', 'Playwright', 'AirTest', 'MyBatis', 'JUnit', 'Git', 'Postman'] },
-  { group: 'Messaging & DevOps', items: ['RabbitMQ', 'MQTT', 'Docker', 'Linux (Debian, Ubuntu, Raspberry Pi OS)'] },
-  { group: 'Currently learning', items: ['Spring Boot', 'Elasticsearch', 'Apache Kafka'] },
-];
-
-export const certifications = ['Prompt Engineering, BTK Akademi'];
-
-export const education = [
-  {
-    school: 'Bursa Uludağ University',
-    degree: 'B.Sc. in Computer Engineering',
-    period: '2017 – 2021',
-    detail:
-      'GPA 3.31 / 4.00. Graduation project: a sensor-based system that classifies recyclable materials.',
-  },
-  {
-    school: 'Anadolu University',
-    degree: 'Associate Degree in Business Management',
-    period: '2020 – 2022',
-    detail: 'Completed alongside the engineering degree.',
-  },
-];
-
-export const leadership = [
-  {
-    org: 'IEEE BUU Student Branch',
-    role: 'Computer Society Committee Representative',
-    period: '2019 – 2020',
-    detail: 'Organized coding workshops, training sessions and technical trips.',
-  },
-  {
-    org: 'MERGEN Robotaxi & IEEE BUU autonomous car teams',
-    role: 'Team member',
-    period: '2018 – 2021',
-    detail: 'Worked on object detection, parking algorithms and ROS for Teknofest and MARC autonomous vehicle competitions.',
-  },
-  {
-    org: 'IEEE BUU Student Branch',
-    role: 'Press & Media Representative',
-    period: '2017 – 2019',
-    detail: 'Designed social media posters and the branch magazine BULUŞ.',
-  },
-];
+export const profile: Profile = data.profile;
+export const contact: Contact = data.contact;
+export const experience: Experience[] = data.experience;
+export const skills: { group: string; items: string[] }[] = data.skills;
+export const certifications: string[] = data.certifications;
+export const education: Education[] = data.education;
+export const leadership: Leadership[] = data.leadership;
