@@ -94,7 +94,7 @@ const apps = (await getCollection('projects'))
         </div>
 
         {apps.length > 0 && (
-          <button type="button" class="launcher-btn" aria-haspopup="dialog" aria-expanded="false" aria-controls="launcher">
+          <button type="button" class="launcher-btn" data-track="Apps menüsü" aria-haspopup="dialog" aria-expanded="false" aria-controls="launcher">
             <span class="dots" aria-hidden="true">
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
             </span>
@@ -113,15 +113,15 @@ const apps = (await getCollection('projects'))
         </nav>
 
         <ul class="contact" aria-label="Contact">
-          <li><a href={`mailto:${contact.emails[0]}`}>{contact.emails[0]}</a></li>
-          <li><a href={contact.linkedin} rel="noopener">LinkedIn</a></li>
-          <li><a href={contact.github[0]} rel="noopener">GitHub</a></li>
-          <li><a href={contact.newsletter} rel="noopener">Patch Incoming newsletter</a></li>
-          {profile.cvUrl && <li><a href={profile.cvUrl} download>Download CV (PDF)</a></li>}
+          <li><a href={`mailto:${contact.emails[0]}`} data-track="E-posta">{contact.emails[0]}</a></li>
+          <li><a href={contact.linkedin} rel="noopener" data-track="LinkedIn">LinkedIn</a></li>
+          <li><a href={contact.github[0]} rel="noopener" data-track="GitHub">GitHub</a></li>
+          <li><a href={contact.newsletter} rel="noopener" data-track="Bülten">Patch Incoming newsletter</a></li>
+          {profile.cvUrl && <li><a href={profile.cvUrl} download data-track="CV indirme">Download CV (PDF)</a></li>}
         </ul>
 
         <div class="sidebar-foot">
-          <button type="button" class="theme-toggle" aria-label="Switch colour theme">
+          <button type="button" class="theme-toggle" data-track="Tema değiştir" aria-label="Switch colour theme">
             <span class="theme-label">Dark theme</span>
           </button>
           <p class="copy">© {year} mifarosa.com</p>
@@ -177,6 +177,30 @@ const apps = (await getCollection('projects'))
         );
         byId.forEach((_, id) => { const el = id && document.getElementById(id); if (el) observer.observe(el); });
       }
+
+      // Click events for GoatCounter: elements with data-track use that name;
+      // other outbound, mailto and download links get one automatically.
+      // Internal links are already counted as page views.
+      const trackName = (el: HTMLElement) => {
+        if (el.dataset.track) return el.dataset.track;
+        if (!(el instanceof HTMLAnchorElement) || !el.href) return null;
+        if (el.protocol === 'mailto:') return 'E-posta';
+        if (el.hasAttribute('download')) return `İndirme: ${el.pathname.split('/').pop()}`;
+        if (el.origin !== location.origin && el.protocol.startsWith('http')) {
+          return `Dış link: ${el.hostname.replace(/^www\./, '')}${el.pathname.replace(/\/$/, '')}`;
+        }
+        return null;
+      };
+      const trackClick = (e: MouseEvent) => {
+        if (e.type === 'auxclick' && e.button !== 1) return;   // middle click opens a tab, right click does not
+        const el = (e.target as Element).closest<HTMLElement>('a, button');
+        const name = el && trackName(el);
+        const gc = (window as any).goatcounter;
+        if (!name || !gc?.count) return;
+        gc.count({ path: name, title: name, referrer: '', event: true });
+      };
+      document.addEventListener('click', trackClick);
+      document.addEventListener('auxclick', trackClick);
 
       // Apps launcher: opens the dialog growing out of the button
       const launchBtn = document.querySelector<HTMLButtonElement>('.launcher-btn');
