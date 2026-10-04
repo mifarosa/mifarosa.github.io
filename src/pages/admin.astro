@@ -1,9 +1,10 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { goatcounterUrl } from '../data/analytics';
+import { goatcounterUrl, adminVault } from '../data/analytics';
 
 // Private stats page: not linked anywhere, not indexed and not counted itself.
-// Data comes from the GoatCounter API with a read-only key kept in this browser only.
+// Data comes from the GoatCounter API. The API key ships encrypted (adminVault)
+// and is only decrypted in the browser with the admin password.
 const ranges = [
   { days: 7, label: '7 gün' },
   { days: 30, label: '30 gün' },
@@ -23,24 +24,57 @@ const lists = [
 <BaseLayout title="Admin" lang="tr" noindex track={false}>
   <h1 class="page-title">Ziyaretçiler</h1>
 
+  <section id="login" hidden>
+    <form id="login-form" class="token-form">
+      <label for="password">Şifre</label>
+      <div class="row">
+        <input id="password" name="password" type="password" autocomplete="current-password" required />
+        <button type="submit" class="button">Giriş</button>
+      </div>
+      <label class="check remember">
+        <input type="checkbox" id="remember" />
+        Bu cihazda hatırla
+      </label>
+      <p id="login-error" class="error" role="alert" hidden></p>
+    </form>
+    <p class="hint"><a href="#kurulum">Anahtarı ya da şifreyi değiştir</a></p>
+  </section>
+
   <section id="setup" class="setup" hidden>
     <p class="lede">
       İstatistikler <a href={goatcounterUrl} rel="noopener">GoatCounter</a> üzerinden geliyor.
-      Bu sayfanın veriyi okuyabilmesi için bir kez API anahtarı girmen yeterli; anahtar sadece bu tarayıcıda saklanır.
+      API anahtarı burada senin şifrenle şifrelenir ve siteye öyle konur. Şifre hiçbir yerde saklanmaz.
     </p>
     <ol class="steps">
-      <li><a href={goatcounterUrl} rel="noopener">{goatcounterUrl.replace('https://', '')}</a> hesabına giriş yap.</li>
-      <li><strong>User → API</strong> sayfasında yeni anahtar oluştur, sadece <strong>Read statistics</strong> iznini işaretle.</li>
-      <li>Anahtarı aşağıya yapıştır.</li>
+      <li><a href={`${goatcounterUrl}/user/api`} rel="noopener">GoatCounter → User → API</a> sayfasında yeni anahtar oluştur, sadece <strong>Read statistics</strong> iznini işaretle.</li>
+      <li>Anahtarı ve kendine bir şifre (en az 12 karakter) aşağıya yaz.</li>
+      <li>Çıkan şifreli metni sitenin koduna ekle.</li>
     </ol>
-    <form id="token-form" class="token-form">
+    <form id="setup-form" class="token-form">
       <label for="token">API anahtarı</label>
+      <div class="row"><input id="token" name="token" type="password" autocomplete="off" spellcheck="false" required /></div>
+      <label for="new-password">Şifre</label>
+      <div class="row"><input id="new-password" name="new-password" type="password" autocomplete="new-password" minlength="12" required /></div>
+      <label for="new-password-2">Şifre (tekrar)</label>
       <div class="row">
-        <input id="token" name="token" type="password" autocomplete="off" spellcheck="false" required />
-        <button type="submit" class="button">Kaydet</button>
+        <input id="new-password-2" name="new-password-2" type="password" autocomplete="new-password" minlength="12" required />
+        <button type="submit" class="button">Şifrele</button>
       </div>
       <p id="setup-error" class="error" role="alert" hidden></p>
     </form>
+
+    <div id="vault-out" class="vault-out" hidden>
+      <label for="vault">Şifreli anahtar</label>
+      <textarea id="vault" readonly rows="4" spellcheck="false"></textarea>
+      <div class="row">
+        <button type="button" id="copy-vault" class="button">Kopyala</button>
+        <button type="button" id="to-dash" class="ghost">Panele geç</button>
+      </div>
+      <p class="hint">
+        Bu metni <code>src/data/analytics.ts</code> dosyasındaki <code>adminVault</code> değerine yapıştır (ya da Claude'a gönder).
+        Şifreli olduğu için sitede herkese açık durması sorun değil; şifren olmadan çözülemez.
+      </p>
+    </div>
   </section>
 
   <section id="dash" hidden>
@@ -85,23 +119,62 @@ const lists = [
         Bu tarayıcıdaki kendi ziyaretlerimi sayma
       </label>
       <a href={goatcounterUrl} rel="noopener">GoatCounter panelini aç</a>
-      <button type="button" id="forget" class="ghost small">Anahtarı bu tarayıcıdan sil</button>
+      <button type="button" id="logout" class="ghost small">Çıkış yap</button>
     </div>
   </section>
 
   <noscript><p class="lede">Bu sayfa JavaScript gerektirir.</p></noscript>
 </BaseLayout>
 
-<script define:vars={{ api: `${goatcounterUrl}/api/v0` }}>
-  const TOKEN_KEY = 'gc-token';
+<script define:vars={{ api: `${goatcounterUrl}/api/v0`, vault: adminVault }}>
+  const TOKEN_KEY = 'gc-key';   // decrypted key: sessionStorage, or localStorage with "remember"
   const RANGE_KEY = 'gc-range';
   const $ = (id) => document.getElementById(id);
 
-  const store = {
-    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
-    del(k) { try { localStorage.removeItem(k); } catch (e) {} },
-  };
+  const storage = (area) => ({
+    get(k) { try { return area().getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { area().setItem(k, v); } catch (e) {} },
+    del(k) { try { area().removeItem(k); } catch (e) {} },
+  });
+  const store = storage(() => localStorage);
+  const session = storage(() => sessionStorage);
+
+  const getToken = () => session.get(TOKEN_KEY) || store.get(TOKEN_KEY);
+  const setToken = (t, remember) => { session.set(TOKEN_KEY, t); if (remember) store.set(TOKEN_KEY, t); };
+  const clearToken = () => { session.del(TOKEN_KEY); store.del(TOKEN_KEY); };
+  store.del('gc-token');   // unencrypted key saved by the first version of this page
+
+  // ---------- Vault: API key encrypted with the admin password ----------
+
+  const enc = new TextEncoder();
+  const b64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+  const unb64 = (str) => Uint8Array.from(atob(str), (c) => c.charCodeAt(0));
+
+  async function deriveKey(password, salt, iterations) {
+    const base = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+      base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  }
+
+  // Format: v1.<iterations>.<salt>.<iv>.<ciphertext>, all base64
+  async function seal(secret, password) {
+    const iterations = 600000;
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const key = await deriveKey(password, salt, iterations);
+    const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, enc.encode(secret));
+    return ['v1', iterations, b64(salt), b64(iv), b64(data)].join('.');
+  }
+
+  // Throws when the password is wrong (AES-GCM authentication fails)
+  async function unseal(sealed, password) {
+    const [version, iterations, salt, iv, data] = sealed.trim().split('.');
+    if (version !== 'v1') throw new Error('Bilinmeyen biçim');
+    const key = await deriveKey(password, unb64(salt), Number(iterations));
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(iv) }, key, unb64(data));
+    return new TextDecoder().decode(plain);
+  }
 
   const nf = new Intl.NumberFormat('tr-TR');
   const dayFmt = new Intl.DateTimeFormat('tr-TR', { day: 'numeric', month: 'short' });
@@ -131,18 +204,36 @@ const lists = [
     return res.json();
   }
 
-  function showSetup(message) {
-    $('dash').hidden = true;
-    $('setup').hidden = false;
-    const err = $('setup-error');
+  function showOnly(id) {
+    ['login', 'setup', 'dash'].forEach((s) => ($(s).hidden = s !== id));
+  }
+
+  function showError(id, message) {
+    const err = $(id);
     err.hidden = !message;
     err.textContent = message || '';
+  }
+
+  function showSetup(message) {
+    showOnly('setup');
+    showError('setup-error', message);
     $('token').focus();
   }
 
+  function showLogin(message) {
+    showOnly('login');
+    showError('login-error', message);
+    $('password').focus();
+  }
+
+  // No vault yet (or #kurulum in the URL): setup, otherwise the password prompt
+  function showGate(message) {
+    if (!vault || location.hash === '#kurulum') showSetup(message);
+    else showLogin(message);
+  }
+
   function showDash() {
-    $('setup').hidden = true;
-    $('dash').hidden = false;
+    showOnly('dash');
     document.querySelectorAll('.ranges button').forEach((b) =>
       b.setAttribute('aria-pressed', String(Number(b.dataset.days) === days)));
   }
@@ -233,8 +324,8 @@ const lists = [
   // ---------- Loading ----------
 
   async function load() {
-    const token = store.get(TOKEN_KEY);
-    if (!token) return showSetup();
+    const token = getToken();
+    if (!token || location.hash === '#kurulum') return showGate();
     showDash();
 
     const id = ++loading;
@@ -277,8 +368,8 @@ const lists = [
     } catch (err) {
       if (id !== loading) return;
       if (err instanceof AuthError) {
-        store.del(TOKEN_KEY);
-        return showSetup(err.message);
+        clearToken();
+        return showGate(`${err.message} Yeni bir anahtarla kurulumu tekrarla.`);
       }
       $('status').textContent = err instanceof TypeError
         ? 'GoatCounter\'a ulaşılamadı. İnternet bağlantını ya da reklam engelleyiciyi kontrol et.'
@@ -288,14 +379,61 @@ const lists = [
 
   // ---------- Controls ----------
 
-  $('token-form').addEventListener('submit', (e) => {
+  $('login-form').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const value = $('token').value.trim();
-    if (!value) return;
-    store.set(TOKEN_KEY, value);
-    $('token').value = '';
+    const btn = e.submitter;
+    btn.disabled = true;
+    try {
+      setToken(await unseal(vault, $('password').value), $('remember').checked);
+      $('password').value = '';
+      showError('login-error');
+      load();
+    } catch (err) {
+      showError('login-error', 'Şifre yanlış.');
+      $('password').select();
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('setup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const token = $('token').value.trim();
+    const pass = $('new-password').value;
+    if (pass !== $('new-password-2').value) return showError('setup-error', 'Şifreler aynı değil.');
+    const btn = e.submitter;
+    btn.disabled = true;
+    showError('setup-error');
+    try {
+      // Make sure the key actually works before sealing it
+      const now = new Date();
+      await call('/stats/total', { start: iso(new Date(now - 864e5)), end: iso(now) }, token);
+      $('vault').value = await seal(token, pass);
+      $('vault-out').hidden = false;
+      setToken(token, false);
+      $('setup-form').reset();
+    } catch (err) {
+      showError('setup-error', err instanceof AuthError
+        ? 'Anahtar geçersiz ya da Read statistics izni yok.'
+        : 'GoatCounter\'a ulaşılamadı. Reklam engelleyiciyi kontrol et.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('copy-vault').addEventListener('click', async (e) => {
+    $('vault').select();
+    try { await navigator.clipboard.writeText($('vault').value); } catch (err) { document.execCommand('copy'); }
+    e.currentTarget.textContent = 'Kopyalandı';
+  });
+
+  $('to-dash').addEventListener('click', () => {
+    history.replaceState(null, '', location.pathname);
+    $('vault-out').hidden = true;
     load();
   });
+
+  window.addEventListener('hashchange', load);
 
   document.querySelectorAll('.ranges button').forEach((b) => b.addEventListener('click', () => {
     days = Number(b.dataset.days);
@@ -305,9 +443,9 @@ const lists = [
 
   $('refresh').addEventListener('click', load);
 
-  $('forget').addEventListener('click', () => {
-    store.del(TOKEN_KEY);
-    showSetup();
+  $('logout').addEventListener('click', () => {
+    clearToken();
+    showGate();
   });
 
   // count.js skips counting when this flag is set (same as visiting /#toggle-goatcounter)
@@ -323,7 +461,19 @@ const lists = [
 
   /* ---------- Setup ---------- */
   .steps { margin: 1.25rem 0 1.5rem 1.25rem; display: grid; gap: 0.35rem; color: var(--ink-soft); }
-  .token-form label { display: block; font-weight: 700; margin-bottom: 0.4rem; }
+  .token-form > label:not(.check), .vault-out > label { display: block; font-weight: 700; margin: 0.9rem 0 0.4rem; }
+  .token-form > label:first-child { margin-top: 0; }
+  .token-form .remember { margin-top: 0.75rem; font-size: 0.9rem; color: var(--ink-soft); }
+  .hint { margin-top: 1rem; font-size: 0.9rem; color: var(--muted); max-width: var(--measure); }
+  .vault-out { margin-top: 1.75rem; padding-top: 1.25rem; border-top: 1px solid var(--rule); }
+  .vault-out textarea {
+    width: 100%; margin-bottom: 0.6rem; resize: vertical;
+    font-family: var(--font-mono); font-size: 0.8rem; word-break: break-all;
+    color: var(--ink); background: var(--surface);
+    border: 1px solid var(--rule); border-radius: 8px;
+    padding: 0.55rem 0.75rem;
+  }
+  .vault-out .ghost, .row .ghost { font-size: 1rem; }
   .row { display: flex; gap: 0.6rem; flex-wrap: wrap; }
   .row input {
     flex: 1 1 16rem; min-width: 0;

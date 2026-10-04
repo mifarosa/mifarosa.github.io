@@ -60,6 +60,14 @@ Create `src/content/blog/<slug>.md` with `title`, `description` and `date` in th
 
 Drafts are imported with `draft: true` and stay hidden. Static pages and comments are skipped. The script also writes `scripts/blogger-redirects.csv` with each old post URL and its new address.
 
+## Visitor stats
+
+Visits are counted with [GoatCounter](https://mifarosa.goatcounter.com) on the live site only. The unlisted `/admin` page shows the stats behind a password:
+
+1. Open `/admin#kurulum`, enter a GoatCounter API key (only **Read statistics**) and a password.
+2. Copy the encrypted text it prints into `adminVault` in `src/data/analytics.ts` and deploy.
+3. From then on `/admin` only asks for the password. The password is not stored anywhere; to change it, repeat the steps.
+
 ## Deployment
 
 Every push to `main` builds the site and deploys it with GitHub Actions (`.github/workflows/deploy.yml`).
