@@ -14,7 +14,7 @@ const Heading = headingLevel;
 <article class="project">
   <header class="project-head">
     <Heading class="project-title">
-      {repo ? <a href={repo} rel="noopener">{title}</a> : title}
+      {repo ? <a href={repo} rel="noopener" data-track={`Proje kodu: ${title}`}>{title}</a> : title}
     </Heading>
     <span class={`status status-${status.toLowerCase()}`}>{status}</span>
   </header>
@@ -23,8 +23,8 @@ const Heading = headingLevel;
   <p class="stack"><strong>Stack:</strong> {tags.join(', ')}</p>
   {(repo || demo) && (
     <p class="link-row">
-      {repo && <a href={repo} rel="noopener">Source code</a>}
-      {demo && <a href={demo} rel="noopener">Open app</a>}
+      {repo && <a href={repo} rel="noopener" data-track={`Proje kodu: ${title}`}>Source code</a>}
+      {demo && <a href={demo} rel="noopener" data-track={`Uygulama: ${title}`}>Open app</a>}
     </p>
   )}
 </article>
