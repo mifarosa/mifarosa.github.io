@@ -1,0 +1,32 @@
+---
+// Content editor (Sveltia CMS): edits blog posts, projects and profile data in the GitHub repo.
+// Each save is a commit to main, which the deploy workflow publishes in a minute or two.
+// Pinned to the version the config in config.json.ts was checked against.
+import { adminApiUrl } from '../../../data/analytics';
+---
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>İçerik | mifarosa.com</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link href="/admin/cms/config.json" type="application/json" rel="cms-config-url" />
+  </head>
+  <body>
+    {adminApiUrl ? (
+      <script is:inline src="https://unpkg.com/@sveltia/cms@0.228.0/dist/sveltia-cms.js"></script>
+    ) : (
+      <main style="font-family: system-ui, sans-serif; max-width: 36rem; margin: 4rem auto; padding: 0 1rem; line-height: 1.6;">
+        <h1>İçerik editörü henüz hazır değil</h1>
+        <p>
+          GitHub girişini yapan Cloudflare Worker kurulduktan sonra adresini
+          <code>src/data/analytics.ts</code> içindeki <code>adminApiUrl</code> değerine yaz.
+          Adımlar README'nin "Admin" bölümünde.
+        </p>
+        <p><a href="/admin">Admin paneline dön</a></p>
+      </main>
+    )}
+  </body>
+</html>

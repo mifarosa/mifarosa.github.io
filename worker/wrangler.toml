@@ -1,0 +1,14 @@
+# Admin backend for mifarosa.com: GitHub sign-in and the GoatCounter stats proxy.
+# Deployed by .github/workflows/deploy-worker.yml; secrets are set there.
+name = "mifarosa-admin"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+workers_dev = true
+
+[vars]
+ALLOWED_USER = "mifarosa"
+# Sites that may use the sign-in popup (hostnames)
+ALLOWED_DOMAINS = "mifarosa.com,localhost"
+# Pages that may call /stats (origins)
+ALLOWED_ORIGINS = "https://mifarosa.com,http://localhost:4321"
+GOATCOUNTER_CODE = "mifarosa"
