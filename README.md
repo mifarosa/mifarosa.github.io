@@ -73,14 +73,12 @@ Sign-in and the stats go through a small Cloudflare Worker in `worker/`. It does
 
 ### One-time setup
 
-1. **Cloudflare** (free): note the Account ID and create an API token with the "Edit Cloudflare Workers" template.
-2. **GoatCounter**: create an API key with only **Read statistics**.
-3. **Repository secrets** (Settings → Secrets and variables → Actions): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `GOATCOUNTER_KEY`.
-4. Run the **Deploy admin worker** workflow (Actions tab). Its log prints the worker URL, e.g. `https://mifarosa-admin.<account>.workers.dev`.
-5. **GitHub OAuth app** (Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `<worker URL>/callback`. Add its Client ID and a new client secret as the `GH_OAUTH_CLIENT_ID` and `GH_OAUTH_CLIENT_SECRET` repository secrets, then run the workflow again.
-6. Put the worker URL in `adminApiUrl` in `src/data/analytics.ts` and deploy the site.
+The worker is deployed by Cloudflare Workers Builds, which is connected to this repository.
 
-Changing `worker/` redeploys the worker automatically.
+1. **Worker build settings** (Cloudflare → Workers → `mifarosa-github-io` → Settings → Build): root directory `worker`, empty build command, deploy command `npx wrangler deploy`. Its address is `https://mifarosa-github-io.mfg-b03.workers.dev`, which is set as `adminApiUrl` in `src/data/analytics.ts`.
+2. **GoatCounter**: create an API key with only **Read statistics**.
+3. **GitHub OAuth app** (GitHub → Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `https://mifarosa-github-io.mfg-b03.workers.dev/callback`.
+4. **Worker secrets** (Settings → Variables and Secrets, type *Secret*): `GOATCOUNTER_KEY`, `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (from the OAuth app).
 
 ## Deployment
 

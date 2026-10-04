@@ -7,7 +7,7 @@
 //                         GoatCounter API key never leaves this worker.
 //
 // Vars (wrangler.toml): ALLOWED_USER, ALLOWED_DOMAINS, ALLOWED_ORIGINS, GOATCOUNTER_CODE
-// Secrets: GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOATCOUNTER_KEY
+// Secrets (Cloudflare dashboard): GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOATCOUNTER_KEY
 
 const SCOPES = ['repo', 'public_repo', 'read:user'];
 const DEFAULT_SCOPE = 'public_repo';
