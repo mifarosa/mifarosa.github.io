@@ -3,3 +3,7 @@
 export const goatcounterCode = 'mifarosa';
 
 export const goatcounterUrl = `https://${goatcounterCode}.goatcounter.com`;
+
+// GoatCounter API key for /admin, encrypted with the admin password (AES-GCM, PBKDF2).
+// Generate it on /admin#kurulum; the password itself is never stored anywhere.
+export const adminVault = '';
