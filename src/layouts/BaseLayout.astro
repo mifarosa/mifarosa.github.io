@@ -24,16 +24,14 @@ const {
 const fullTitle = title ? `${title} | ${profile.name}` : `${profile.name} | Software Engineer`;
 const canonical = new URL(Astro.url.pathname, Astro.site);
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
-const isHome = path === '/';
 
-// On the home page these jump to sections; elsewhere they lead back home first
+// Site pages; the current one (or its section, e.g. a blog post) is highlighted
 const nav = [
-  { id: 'about', label: 'About' },
-  { id: 'experience', label: 'Experience' },
-  { id: 'projects', label: 'Projects' },
-  { id: 'skills', label: 'Skills' },
-  { id: 'education', label: 'Education' },
-].map((n) => ({ ...n, href: isHome ? `#${n.id}` : `/#${n.id}` }));
+  { href: '/', label: 'Home' },
+  { href: '/cv', label: 'CV' },
+  { href: '/projects', label: 'Projects' },
+  { href: '/blog', label: 'Blog' },
+].map((n) => ({ ...n, current: n.href === '/' ? path === '/' : path === n.href || path.startsWith(`${n.href}/`) }));
 
 const year = new Date().getFullYear();
 
@@ -103,12 +101,11 @@ const apps = (await getCollection('projects'))
           </button>
         )}
 
-        <nav aria-label="Sections" class="toc">
+        <nav aria-label="Site" class="toc">
           <ul>
             {nav.map((n) => (
-              <li><a href={n.href} data-section={isHome ? n.id : undefined}>{n.label}</a></li>
+              <li><a href={n.href} aria-current={n.current ? 'page' : undefined}>{n.label}</a></li>
             ))}
-            <li><a href="/blog" aria-current={path.startsWith('/blog') ? 'page' : undefined}>Blog</a></li>
           </ul>
         </nav>
 
@@ -160,23 +157,6 @@ const apps = (await getCollection('projects'))
         try { localStorage.setItem('theme', next); } catch (e) {}
         sync();
       });
-
-      // Highlight the section currently in view in the sidebar (home page only)
-      const links = document.querySelectorAll<HTMLAnchorElement>('.toc a[data-section]');
-      if (links.length) {
-        const byId = new Map([...links].map((a) => [a.dataset.section, a]));
-        const observer = new IntersectionObserver(
-          (entries) => {
-            entries.forEach((e) => {
-              if (!e.isIntersecting) return;
-              links.forEach((a) => a.removeAttribute('aria-current'));
-              byId.get(e.target.id)?.setAttribute('aria-current', 'location');
-            });
-          },
-          { rootMargin: '-20% 0px -70% 0px' }
-        );
-        byId.forEach((_, id) => { const el = id && document.getElementById(id); if (el) observer.observe(el); });
-      }
 
       // Click events for GoatCounter: elements with data-track use that name;
       // other outbound, mailto and download links get one automatically.
