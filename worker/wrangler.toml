@@ -2,7 +2,7 @@
 # Deployed by Cloudflare Workers Builds (root directory: worker) on every push to main.
 # Secrets (GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, GOATCOUNTER_KEY) are set in the Cloudflare dashboard.
 # The name must match the Worker in the dashboard.
-name = "mifarosa-github-io"
+name = "fancy-wildflower-a41a"
 main = "src/index.js"
 compatibility_date = "2026-09-01"
 workers_dev = true

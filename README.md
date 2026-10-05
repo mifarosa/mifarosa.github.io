@@ -75,9 +75,9 @@ Sign-in and the stats go through a small Cloudflare Worker in `worker/`. It does
 
 The worker is deployed by Cloudflare Workers Builds, which is connected to this repository.
 
-1. **Worker build settings** (Cloudflare → Workers → `mifarosa-github-io` → Settings → Build): root directory `worker`, empty build command, deploy command `npx wrangler deploy`. Its address is `https://mifarosa-github-io.mfg-b03.workers.dev`, which is set as `adminApiUrl` in `src/data/analytics.ts`.
+1. **Worker build settings** (Cloudflare → Workers → `fancy-wildflower-a41a` → Settings → Build): root directory `worker`, empty build command, deploy command `npx wrangler deploy`. Its address is `https://fancy-wildflower-a41a.m-farukgul.workers.dev`, which is set as `adminApiUrl` in `src/data/analytics.ts`.
 2. **GoatCounter**: create an API key with only **Read statistics**.
-3. **GitHub OAuth app** (GitHub → Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `https://mifarosa-github-io.mfg-b03.workers.dev/callback`.
+3. **GitHub OAuth app** (GitHub → Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `https://fancy-wildflower-a41a.m-farukgul.workers.dev/callback`.
 4. **Worker secrets** (Settings → Variables and Secrets, type *Secret*): `GOATCOUNTER_KEY`, `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (from the OAuth app).
 
 ## Deployment
