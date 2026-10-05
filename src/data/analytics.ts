@@ -5,4 +5,4 @@ export const goatcounterCode = 'mifarosa';
 export const goatcounterUrl = `https://${goatcounterCode}.goatcounter.com`;
 
 // Admin backend (worker/): GitHub sign-in for /admin and /admin/cms, and the stats proxy.
-export const adminApiUrl = 'https://mifarosa-github-io.mfg-b03.workers.dev';
+export const adminApiUrl = 'https://fancy-wildflower-a41a.m-farukgul.workers.dev';
