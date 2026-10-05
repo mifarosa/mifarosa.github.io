@@ -8,7 +8,7 @@ repo: https://github.com/mifarosa/puantaj
 demo: https://puantaj.mifarosa.com
 icon: /apps/puantaj.png
 featured: true
-order: 6
+order: 7
 ---
 A scoreboard for two teams that fills the phone screen: each half is one team, tap the upper half to add a point and the lower half to take one away. Numbers change with a split-flap animation like an old stadium board. A strip in the middle holds settings, undo, set or period info, the match clock and a side swap.
 
