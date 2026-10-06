@@ -65,3 +65,19 @@ For normal users, nothing will change tomorrow. Your phone will work the same wa
 This agreement is more than a legal document. It shows that Huawei, after years of sanctions, has become a technology leader that others need to work with. It also reminds us that in the tech world, even competitors depend on each other.
 
 _Sources:_ [_Huawei official announcement_](https://www.huawei.com/en/news/2026/10/qualcomm-broad-patent-agreement)_,_ [_TrendForce_](https://www.trendforce.com/news/2026/10/05/news-qualcomm-to-pay-huawei-for-first-time-under-cross-licensing-deal-covering-5g-ai-and-logicfolding-patents/)_,_ [_Silicon Republic_](https://www.siliconrepublic.com/business/huawei-qualcomm-sign-multi-year-licensing-deal)
+
+#### 📚 Kelime listesi (Türkçe)
+
+| İngilizce | Türkçe |
+| patent agreement | patent anlaşması |
+| licensing fee | lisans ücreti |
+| cross-licensing | karşılıklı lisanslama |
+| regulators | düzenleyici kurumlar |
+| approve | onaylamak |
+| contributor | katkıda bulunan |
+| recognize | tanımak, değerini kabul etmek |
+| sanctions | yaptırımlar |
+| rival | rakip |
+| settle a dispute | anlaşmazlığı çözmek |
+| despite | -e rağmen |
+| depend on | -e bağlı olmak |
