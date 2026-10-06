@@ -1,10 +1,15 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import SectionTitle from '../components/SectionTitle.astro';
 import { profile, contact, experience, skills, certifications, education, leadership } from '../data/profile';
 
 // Full CV. Printing it (or "Save as PDF") gives a one-column document without the sidebar.
 const site = 'mifarosa.com';
+
+// Side projects and apps, each with one link: the live app when there is one, else the code
+const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
+const shortUrl = (url: string) => url.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, '');
 ---
 <BaseLayout title="CV" description={`CV of ${profile.name}: ${profile.title}. Experience, skills and education.`}>
   <header class="cv-head">
@@ -43,6 +48,25 @@ const site = 'mifarosa.com';
         </li>
       ))}
     </ol>
+  </section>
+
+  <!-- PROJECTS -->
+  <section id="projects" class="section">
+    <SectionTitle id="projects" title="Projects & apps" />
+    <ul class="cv-projects">
+      {projects.map(({ data }) => {
+        const link = data.demo ?? data.repo;
+        return (
+          <li>
+            <p class="job-title small">{data.title}, <span>{data.subtitle}</span></p>
+            <p class="stack">
+              {data.tags.join(', ')}
+              {link && <> · <a href={link} rel="noopener">{shortUrl(link)}</a></>}
+            </p>
+          </li>
+        );
+      })}
+    </ul>
   </section>
 
   <!-- SKILLS -->
@@ -109,6 +133,10 @@ const site = 'mifarosa.com';
   }
   .ghost-button:hover { border-color: var(--accent); color: var(--accent); }
   .print-only { display: none; }
+
+  .cv-projects { list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem 2rem; }
+  .cv-projects li { min-width: 0; }
+  .cv-projects .stack { margin-top: 0.15rem; overflow-wrap: anywhere; }
   .cv-head + .section { padding-top: 3rem; }
 
   /* ---------- Timeline (experience, education) ---------- */
@@ -140,15 +168,30 @@ const site = 'mifarosa.com';
   .skills dd { color: var(--ink-soft); }
 
   @media (max-width: 640px) {
+    .cv-projects { grid-template-columns: 1fr; }
     .job, .skills div { grid-template-columns: 1fr; gap: 0.15rem; }
     .skills { gap: 1.1rem; }
   }
 
   @media print {
     .no-print { display: none !important; }
+    .page-title { font-size: 1.6rem; }
+    .lede { font-size: 1rem; }
+    .cv-contact { margin-bottom: 0.75rem; }
+    .section-title { margin-bottom: 0.6rem; padding-bottom: 0.3rem; font-size: 1.15rem; }
+    .job-points li + li { margin-top: 0.1rem; }
+    .job-points, .job-desc { margin: 0.25rem 0 0.3rem; }
+    .cv-projects { gap: 0.5rem 1.5rem; }
+    .cv-projects li { break-inside: avoid; }
+    .cv-head + .section { padding-top: 1.25rem; }
+    .job { grid-template-columns: 10rem 1fr; gap: 1rem; }
+    .compact .job { padding: 0.35rem 0; }
+    .sub-title { margin: 1rem 0 0.3rem; }
+    .skills { gap: 0.3rem; }
+    .skills div { grid-template-columns: 11rem 1fr; }
     .print-only { display: inline; }
     .cv-contact a { color: inherit; text-decoration: none; }
-    .section { padding-top: 1.5rem; }
-    .job { break-inside: avoid; padding: 0.8rem 0; }
+    .section { padding-top: 1rem; }
+    .job { break-inside: avoid; padding: 0.5rem 0; }
   }
 </style>

@@ -167,7 +167,8 @@ code, kbd { font-family: var(--font-mono); font-size: 0.9em; }
     --accent: #000; color-scheme: light;
   }
   @page { margin: 14mm 16mm; }
-  html { font-size: 10.5pt; }
+  html { font-size: 9.5pt; }
+  body { line-height: 1.45; }
   .sidebar, .launcher, .skip-link, .section-title .anchor { display: none !important; }
   .shell { display: block !important; max-width: none !important; padding: 0 !important; }
   main { padding: 0 !important; max-width: none !important; }
