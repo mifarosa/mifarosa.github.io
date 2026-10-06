@@ -99,6 +99,7 @@ const profile = {
             strings('github', 'GitHub hesapları'),
             text('blog', 'Eski blog'),
             text('newsletter', 'Bülten'),
+            text('coffee', 'Buy Me a Coffee', { required: false, hint: 'Boş bırakılırsa kahve butonu gizlenir.' }),
           ],
         },
         {

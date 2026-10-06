@@ -117,6 +117,13 @@ const apps = (await getCollection('projects'))
           {profile.cvUrl && <li><a href={profile.cvUrl} download data-track="CV indirme">Download CV (PDF)</a></li>}
         </ul>
 
+        {contact.coffee && (
+          <a class="coffee" href={contact.coffee} rel="noopener" data-track="Kahve">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v2"/><path d="M14 2v2"/><path d="M16 8a1 1 0 0 1 1 1v8a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4V9a1 1 0 0 1 1-1h14a4 4 0 1 1 0 8h-1"/><path d="M6 2v2"/></svg>
+            Buy me a coffee
+          </a>
+        )}
+
         <div class="sidebar-foot">
           <button type="button" class="theme-toggle" data-track="Tema değiştir" aria-label="Switch colour theme">
             <span class="theme-label">Dark theme</span>
@@ -266,6 +273,21 @@ const apps = (await getCollection('projects'))
   .contact { font-size: 0.9rem; display: grid; gap: 0.35rem; }
   .contact a { color: var(--ink-soft); overflow-wrap: anywhere; }
   .contact a:hover { color: var(--accent); }
+
+  /* Buy Me a Coffee: brand yellow in both themes */
+  .coffee {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.9rem; font-weight: 700;
+    color: #1f1600; background: #ffdd00;
+    border-radius: 999px;
+    padding: 0.45rem 0.95rem;
+    text-decoration: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    transition: transform 0.15s, filter 0.15s;
+  }
+  .coffee:hover { filter: brightness(0.96); transform: translateY(-1px); }
+  @media (prefers-reduced-motion: reduce) { .coffee { transition: none; } .coffee:hover { transform: none; } }
 
   .sidebar-foot { margin-top: auto; display: grid; gap: 0.75rem; justify-items: start; }
   .theme-toggle {
