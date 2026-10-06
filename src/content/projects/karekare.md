@@ -5,7 +5,7 @@ period: "2026"
 status: Active
 tags: [TypeScript, PWA, Canvas, WebCodecs]
 repo: https://github.com/mifarosa/karekare
-demo: https://mifarosa.com/karekare/
+demo: https://karekare.mifarosa.com
 icon: /apps/karekare.png
 featured: true
 order: 10
