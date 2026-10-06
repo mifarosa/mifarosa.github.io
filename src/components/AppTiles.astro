@@ -12,7 +12,7 @@ const { apps } = Astro.props;
     <li>
       <a class="app" href={data.demo} rel="noopener" data-track={`Uygulama: ${data.title}`}>
         {data.icon
-          ? <img class="app-icon" src={data.icon} alt="" width="48" height="48" loading="lazy" />
+          ? <img class="app-icon" src={data.icon} alt="" width="48" height="48" decoding="async" />
           : <span class="app-icon app-initial" aria-hidden="true">{data.title.charAt(0)}</span>}
         <span class="app-name">{data.title}</span>
         <span class="app-desc">{data.subtitle}</span>
