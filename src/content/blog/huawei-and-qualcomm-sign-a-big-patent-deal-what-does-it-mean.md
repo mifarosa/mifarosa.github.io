@@ -69,6 +69,7 @@ _Sources:_ [_Huawei official announcement_](https://www.huawei.com/en/news/2026/
 #### 📚 Kelime listesi (Türkçe)
 
 | İngilizce | Türkçe |
+| --- | --- |
 | patent agreement | patent anlaşması |
 | licensing fee | lisans ücreti |
 | cross-licensing | karşılıklı lisanslama |
