@@ -298,9 +298,12 @@ const apps = (await getCollection('projects'))
   }
   :root[data-theme='dark'] .launcher-btn { color: #1a0d13; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .launcher-btn { color: #1a0d13; } }
+  /* Pulse ring: transform/opacity only (no repaints), a few times after load */
   .launcher-btn::after {
     content: ''; position: absolute; inset: 0; border-radius: inherit;
-    animation: launcher-pulse 2.8s ease-out infinite;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    animation: launcher-pulse 2.8s ease-out 1s 3;
     pointer-events: none;
   }
   .launcher-btn:hover, .launcher-btn:focus-visible {
@@ -322,8 +325,8 @@ const apps = (await getCollection('projects'))
     border-radius: 999px; background: rgba(255, 255, 255, 0.25);
   }
   @keyframes launcher-pulse {
-    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
-    70%, 100% { box-shadow: 0 0 0 12px transparent; }
+    0% { opacity: 0.6; transform: scale(1); }
+    70%, 100% { opacity: 0; transform: scale(1.08, 1.35); }
   }
   @keyframes dot-wave {
     0%, 100% { transform: scale(1); }
@@ -340,19 +343,20 @@ const apps = (await getCollection('projects'))
     background: var(--bg); color: var(--ink);
     border: 1px solid var(--rule); border-radius: 18px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    /* A small grow from the button plus a fade: only transform and opacity animate */
     transform-origin: var(--ox) var(--oy);
-    opacity: 0; transform: scale(0.3);
-    transition: opacity 0.22s, transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15), overlay 0.32s allow-discrete, display 0.32s allow-discrete;
+    opacity: 0; transform: scale(0.94);
+    transition: opacity 0.18s ease-out, transform 0.18s ease-out, overlay 0.18s allow-discrete, display 0.18s allow-discrete;
   }
-  .launcher[open] { opacity: 1; transform: scale(1); }
-  @starting-style { .launcher[open] { opacity: 0; transform: scale(0.3); } }
+  .launcher[open] { opacity: 1; transform: none; }
+  @starting-style { .launcher[open] { opacity: 0; transform: scale(0.94); } }
+  /* Plain dim, no blur: blurring the whole page every frame is what made opening stutter */
   .launcher::backdrop {
     background: rgba(10, 12, 16, 0);
-    backdrop-filter: blur(0);
-    transition: background 0.3s, backdrop-filter 0.3s, overlay 0.3s allow-discrete, display 0.3s allow-discrete;
+    transition: background 0.18s ease-out, overlay 0.18s allow-discrete, display 0.18s allow-discrete;
   }
-  .launcher[open]::backdrop { background: rgba(10, 12, 16, 0.55); backdrop-filter: blur(6px); }
-  @starting-style { .launcher[open]::backdrop { background: rgba(10, 12, 16, 0); backdrop-filter: blur(0); } }
+  .launcher[open]::backdrop { background: rgba(10, 12, 16, 0.6); }
+  @starting-style { .launcher[open]::backdrop { background: rgba(10, 12, 16, 0); } }
   .launcher-head { display: flex; align-items: center; justify-content: space-between; }
   .launcher-head h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; }
   .launcher-sub { color: var(--muted); font-size: 0.95rem; margin: 0.25rem 0 1.25rem; }
@@ -363,12 +367,10 @@ const apps = (await getCollection('projects'))
     border: 1px solid var(--rule); cursor: pointer;
   }
   .launcher-close:hover { color: var(--accent); border-color: var(--accent); }
-  .launcher[open] :global(.apps li) { animation: tile-in 0.4s both cubic-bezier(0.2, 0.9, 0.3, 1.15); }
-  .launcher[open] :global(.apps li:nth-child(2)) { animation-delay: 0.06s; }
-  .launcher[open] :global(.apps li:nth-child(3)) { animation-delay: 0.12s; }
-  .launcher[open] :global(.apps li:nth-child(4)) { animation-delay: 0.18s; }
-  .launcher[open] :global(.apps li:nth-child(n+5)) { animation-delay: 0.24s; }
-  @keyframes tile-in { from { opacity: 0; transform: translateY(14px) scale(0.92); } }
+  .launcher[open] :global(.apps li) { animation: tile-in 0.22s both ease-out 0.05s; }
+  .launcher[open] :global(.apps li:nth-child(2)) { animation-delay: 0.08s; }
+  .launcher[open] :global(.apps li:nth-child(n+3)) { animation-delay: 0.11s; }
+  @keyframes tile-in { from { opacity: 0; } }
 
   @media (prefers-reduced-motion: reduce) {
     .launcher-btn::after, .launcher-btn:hover .dots i, .launcher[open] :global(.apps li) { animation: none; }
@@ -393,6 +395,7 @@ const apps = (await getCollection('projects'))
     .copy { display: none; }
     main { padding-top: 2rem; }
     .launcher-btn { width: auto; align-self: flex-start; }
-    .launcher { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0; max-height: 85vh; transform-origin: 50% 100%; }
+    .launcher { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0; max-height: 85vh; transform: translateY(24px); }
+    @starting-style { .launcher[open] { opacity: 0; transform: translateY(24px); } }
   }
 </style>
