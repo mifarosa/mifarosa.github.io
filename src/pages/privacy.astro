@@ -1,0 +1,51 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { contact } from '../data/profile';
+import { gaMeasurementId } from '../data/analytics';
+---
+<BaseLayout title="Privacy" description="How mifarosa.com counts visits and what it stores.">
+  <h1 class="page-title">Privacy</h1>
+  <div class="prose">
+    <p>This is a personal website. It has no accounts, no ads and no forms, and it does not sell or share data.</p>
+
+    <h2>Visit counts</h2>
+    <p>
+      Visits and clicks are counted with <a href="https://www.goatcounter.com" rel="noopener">GoatCounter</a>.
+      It sets no cookies and stores no personal data: only the page, the referring site, the browser,
+      the screen size and the country, all in aggregate.
+    </p>
+
+    {gaMeasurementId && (
+      <>
+        <h2>Google Analytics</h2>
+        <p>
+          The site also uses Google Analytics to understand how pages are used. Its cookies are only set
+          after you choose <strong>Accept</strong> in the cookie bar. If you decline, or have not chosen
+          yet, Google Analytics runs without cookies and only receives anonymous, aggregated signals.
+          Advertising features are always off. You can change your choice at any time with
+          <button type="button" class="link-button" data-open-consent>Cookie settings</button>.
+        </p>
+      </>
+    )}
+
+    <h2>Your browser</h2>
+    <p>
+      The site remembers your colour theme{gaMeasurementId && ' and your cookie choice'} in your browser's
+      local storage. This stays on your device.
+    </p>
+
+    <h2>Contact</h2>
+    <p>Questions about this page: <a href={`mailto:${contact.emails[0]}`}>{contact.emails[0]}</a>.</p>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 1.5rem; }
+  .prose { max-width: var(--measure); color: var(--ink-soft); }
+  .prose h2 { font-size: 1.15rem; color: var(--ink); margin: 2rem 0 0.5rem; }
+  .prose p { margin-bottom: 1rem; }
+  .link-button {
+    font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 0.18em;
+  }
+</style>
