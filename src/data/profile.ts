@@ -18,6 +18,7 @@ export type Contact = {
   github: string[];
   blog: string;
   newsletter: string;
+  coffee?: string;    // Buy Me a Coffee page; empty hides the sidebar button
 };
 
 export type Experience = {
