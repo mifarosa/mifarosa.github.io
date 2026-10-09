@@ -16,6 +16,7 @@ npm run build    # static output in dist/
 | --- | --- |
 | CV content (summary, experience, skills, education) | `src/data/profile.json` (or edit it in `/admin/cms/`) |
 | Projects (one Markdown file each) | `src/content/projects/` |
+| Games (one Markdown file each, shown on `/games`) | `src/content/games/` |
 | Blog posts (one Markdown file each) | `src/content/blog/` |
 | Page layout (sidebar, theme toggle) | `src/layouts/BaseLayout.astro` |
 | Reusable pieces (project item, section title) | `src/components/` |
@@ -40,6 +41,24 @@ featured: true              # show on the home page
 order: 4                    # lower comes first
 ---
 What it does, in a short paragraph or two.
+```
+
+### Add a game
+
+Put a square icon (192×192 PNG) and a 16:9 screenshot in `public/games/`, then create `src/content/games/<name>.md`:
+
+```markdown
+---
+title: My Game
+subtitle: One-line description
+play: https://mifarosa.com/my-game/
+repo: https://github.com/mifarosa/my-game   # optional
+icon: /games/my-game.png                    # optional
+cover: /games/my-game-cover.webp            # optional
+tags: [JavaScript, three.js]
+order: 2                                    # lower comes first
+---
+How to play and what makes it fun, in a short paragraph or two.
 ```
 
 ### Add a blog post
@@ -67,7 +86,7 @@ Drafts are imported with `draft: true` and stay hidden. Static pages and comment
 
 - **İstatistikler**: visitors, pages, clicks, referrers and more from [GoatCounter](https://mifarosa.goatcounter.com).
 - **Blog yazıları**: every post with its read count.
-- **İçerik düzenle** (`/admin/cms/`): [Sveltia CMS](https://github.com/sveltia/sveltia-cms) for blog posts, projects and the profile/CV (`src/data/profile.json`). Each save is a commit to `main`, which deploys the site.
+- **İçerik düzenle** (`/admin/cms/`): [Sveltia CMS](https://github.com/sveltia/sveltia-cms) for blog posts, projects, games and the profile/CV (`src/data/profile.json`). Each save is a commit to `main`, which deploys the site.
 
 Sign-in and the stats go through a small Cloudflare Worker in `worker/`. It does the GitHub OAuth exchange and keeps the GoatCounter API key. Visits are counted on the live site only.
 
@@ -79,6 +98,10 @@ The worker is deployed by Cloudflare Workers Builds, which is connected to this 
 2. **GoatCounter**: create an API key with only **Read statistics**.
 3. **GitHub OAuth app** (GitHub → Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `https://fancy-wildflower-a41a.m-farukgul.workers.dev/callback`.
 4. **Worker secrets** (Settings → Variables and Secrets, type *Secret*): `GOATCOUNTER_KEY`, `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (from the OAuth app).
+
+### Google Analytics
+
+Google Analytics 4 runs next to GoatCounter once `gaMeasurementId` in `src/data/analytics.ts` is set to the stream's Measurement ID (`G-…`). To get one, go to analytics.google.com → Admin → Create → Property, then add a **Web** data stream for `https://mifarosa.com`. GA uses Consent Mode: a cookie bar asks first, analytics cookies are only set after **Accept**, and ad signals are always off. Click events go to GA as `tracked_click` with the same names GoatCounter uses. The "don't count my visits" toggle in `/admin` turns GA off for that browser too. `/privacy` explains all of this to visitors.
 
 ## Deployment
 

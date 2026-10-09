@@ -67,6 +67,31 @@ const projects = {
   ],
 };
 
+const games = {
+  name: 'games',
+  label: 'Oyunlar',
+  label_singular: 'Oyun',
+  folder: 'src/content/games',
+  create: true,
+  slug: '{{slug}}',
+  extension: 'md',
+  format: 'frontmatter',
+  media_folder: '/public/games',
+  public_folder: '/games',
+  sortable_fields: ['order', 'title'],
+  fields: [
+    { name: 'title', label: 'Ad', widget: 'string' },
+    { name: 'subtitle', label: 'Tek satırlık açıklama', widget: 'string' },
+    { name: 'play', label: 'Oyun adresi', widget: 'string' },
+    { name: 'repo', label: 'Kaynak kod adresi', widget: 'string', required: false },
+    { name: 'icon', label: 'İkon', widget: 'image', required: false, hint: 'Kare, 192×192 PNG.' },
+    { name: 'cover', label: 'Ekran görüntüsü', widget: 'image', required: false, hint: '16:9, Games sayfasında kartın üstünde görünür.' },
+    tagList('Teknolojiler'),
+    { name: 'order', label: 'Sıra', widget: 'number', value_type: 'int', default: 100, hint: 'Küçük olan önce gelir.' },
+    { name: 'body', label: 'Açıklama', widget: 'markdown' },
+  ],
+};
+
 const text = (name: string, label: string, extra = {}) => ({ name, label, widget: 'string', ...extra });
 const strings = (name: string, label: string) => ({ name, label, widget: 'list' });
 
@@ -161,7 +186,7 @@ export const config = {
   public_folder: '/images',
   slug: { encoding: 'ascii', clean_accents: true },
   output: { omit_empty_optional_fields: true },
-  collections: [blog, projects, profile],
+  collections: [blog, projects, games, profile],
 };
 
 export const GET: APIRoute = () =>

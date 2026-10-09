@@ -1,0 +1,20 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import GameCard from '../components/GameCard.astro';
+
+const games = (await getCollection('games')).sort((a, b) => a.data.order - b.data.order);
+---
+<BaseLayout title="Games" description="Small browser games by Mehmet Faruk Gül. Free, no sign-up, and they run on phones too.">
+  <h1 class="page-title">Games</h1>
+  <p class="lede intro">Small games I make for fun. They run in the browser on phones and computers, with no sign-up and no ads.</p>
+  <ul class="games">
+    {games.map((game) => <li><GameCard game={game} /></li>)}
+  </ul>
+</BaseLayout>
+
+<style>
+  .page-title { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 0.75rem; }
+  .intro { margin-bottom: 2.5rem; }
+  .games { list-style: none; display: grid; gap: 2rem; max-width: var(--measure); }
+</style>

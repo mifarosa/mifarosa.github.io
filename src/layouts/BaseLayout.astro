@@ -3,7 +3,8 @@ import '../styles/global.css';
 import { getCollection } from 'astro:content';
 import AppTiles from '../components/AppTiles.astro';
 import { profile, contact } from '../data/profile';
-import { goatcounterUrl } from '../data/analytics';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { goatcounterUrl, gaMeasurementId } from '../data/analytics';
 
 interface Props {
   title?: string;
@@ -30,10 +31,14 @@ const nav = [
   { href: '/', label: 'Home' },
   { href: '/cv', label: 'CV' },
   { href: '/projects', label: 'Projects' },
+  { href: '/games', label: 'Games' },
   { href: '/blog', label: 'Blog' },
 ].map((n) => ({ ...n, current: n.href === '/' ? path === '/' : path === n.href || path.startsWith(`${n.href}/`) }));
 
 const year = new Date().getFullYear();
+
+// Google Analytics runs only on the live site, on tracked pages, once an ID is configured
+const useGa = import.meta.env.PROD && track && !!gaMeasurementId;
 
 // Projects with a live app (a `demo` URL) show up in the Apps launcher
 const apps = (await getCollection('projects'))
@@ -79,6 +84,25 @@ const apps = (await getCollection('projects'))
     {import.meta.env.PROD && track && (
       <script is:inline async data-goatcounter={`${goatcounterUrl}/count`} src="https://gc.zgo.at/count.js"></script>
     )}
+
+    <!-- Google Analytics with Consent Mode: no analytics cookies until the visitor accepts,
+         ads signals always off. The owner's "don't count my visits" flag turns it off too. -->
+    {useGa && (
+      <script is:inline define:vars={{ gaId: gaMeasurementId }}>
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        let choice = null, skip = false;
+        try { choice = localStorage.getItem('consent'); skip = localStorage.getItem('skipgc') === 't'; } catch (e) {}
+        if (skip) window[`ga-disable-${gaId}`] = true;
+        gtag('consent', 'default', {
+          analytics_storage: choice === 'granted' ? 'granted' : 'denied',
+          ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        });
+        gtag('js', new Date());
+        gtag('config', gaId);
+      </script>
+    )}
+    {useGa && <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}></script>}
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -128,6 +152,7 @@ const apps = (await getCollection('projects'))
           <button type="button" class="theme-toggle" data-track="Tema değiştir" aria-label="Switch colour theme">
             <span class="theme-label">Dark theme</span>
           </button>
+          {useGa && <button type="button" class="cookie-settings" data-open-consent>Cookie settings</button>}
           <p class="copy">© {year} mifarosa.com</p>
         </div>
       </aside>
@@ -148,6 +173,8 @@ const apps = (await getCollection('projects'))
       </dialog>
     )}
 
+    {useGa && <ConsentBanner />}
+
     <script>
       // Theme toggle: remembers the visitor's choice
       const root = document.documentElement;
@@ -165,7 +192,7 @@ const apps = (await getCollection('projects'))
         sync();
       });
 
-      // Click events for GoatCounter: elements with data-track use that name;
+      // Click events for GoatCounter (and Google Analytics when on): elements with data-track use that name;
       // other outbound, mailto and download links get one automatically.
       // Internal links are already counted as page views.
       const trackName = (el: HTMLElement) => {
@@ -182,9 +209,9 @@ const apps = (await getCollection('projects'))
         if (e.type === 'auxclick' && e.button !== 1) return;   // middle click opens a tab, right click does not
         const el = (e.target as Element).closest<HTMLElement>('a, button');
         const name = el && trackName(el);
-        const gc = (window as any).goatcounter;
-        if (!name || !gc?.count) return;
-        gc.count({ path: name, title: name, referrer: '', event: true });
+        if (!name) return;
+        (window as any).goatcounter?.count?.({ path: name, title: name, referrer: '', event: true });
+        (window as any).gtag?.('event', 'tracked_click', { name, transport_type: 'beacon' });
       };
       document.addEventListener('click', trackClick);
       document.addEventListener('auxclick', trackClick);
@@ -301,6 +328,12 @@ const apps = (await getCollection('projects'))
   }
   .theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
   .copy { font-size: 0.8rem; color: var(--muted); }
+  .cookie-settings {
+    font: inherit; font-size: 0.8rem; color: var(--muted);
+    background: none; border: 0; padding: 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 0.18em;
+  }
+  .cookie-settings:hover { color: var(--accent); }
 
   main { padding: 3.5rem 0 6rem; max-width: 46rem; min-width: 0; }
 
@@ -320,9 +353,12 @@ const apps = (await getCollection('projects'))
   }
   :root[data-theme='dark'] .launcher-btn { color: #1a0d13; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme='light']) .launcher-btn { color: #1a0d13; } }
+  /* Pulse ring: transform/opacity only (no repaints), a few times after load */
   .launcher-btn::after {
     content: ''; position: absolute; inset: 0; border-radius: inherit;
-    animation: launcher-pulse 2.8s ease-out infinite;
+    border: 2px solid var(--accent);
+    opacity: 0;
+    animation: launcher-pulse 2.8s ease-out 1s 3;
     pointer-events: none;
   }
   .launcher-btn:hover, .launcher-btn:focus-visible {
@@ -344,8 +380,8 @@ const apps = (await getCollection('projects'))
     border-radius: 999px; background: rgba(255, 255, 255, 0.25);
   }
   @keyframes launcher-pulse {
-    0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 50%, transparent); }
-    70%, 100% { box-shadow: 0 0 0 12px transparent; }
+    0% { opacity: 0.6; transform: scale(1); }
+    70%, 100% { opacity: 0; transform: scale(1.08, 1.35); }
   }
   @keyframes dot-wave {
     0%, 100% { transform: scale(1); }
@@ -362,19 +398,20 @@ const apps = (await getCollection('projects'))
     background: var(--bg); color: var(--ink);
     border: 1px solid var(--rule); border-radius: 18px;
     box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+    /* A small grow from the button plus a fade: only transform and opacity animate */
     transform-origin: var(--ox) var(--oy);
-    opacity: 0; transform: scale(0.3);
-    transition: opacity 0.22s, transform 0.32s cubic-bezier(0.2, 0.9, 0.3, 1.15), overlay 0.32s allow-discrete, display 0.32s allow-discrete;
+    opacity: 0; transform: scale(0.94);
+    transition: opacity 0.18s ease-out, transform 0.18s ease-out, overlay 0.18s allow-discrete, display 0.18s allow-discrete;
   }
-  .launcher[open] { opacity: 1; transform: scale(1); }
-  @starting-style { .launcher[open] { opacity: 0; transform: scale(0.3); } }
+  .launcher[open] { opacity: 1; transform: none; }
+  @starting-style { .launcher[open] { opacity: 0; transform: scale(0.94); } }
+  /* Plain dim, no blur: blurring the whole page every frame is what made opening stutter */
   .launcher::backdrop {
     background: rgba(10, 12, 16, 0);
-    backdrop-filter: blur(0);
-    transition: background 0.3s, backdrop-filter 0.3s, overlay 0.3s allow-discrete, display 0.3s allow-discrete;
+    transition: background 0.18s ease-out, overlay 0.18s allow-discrete, display 0.18s allow-discrete;
   }
-  .launcher[open]::backdrop { background: rgba(10, 12, 16, 0.55); backdrop-filter: blur(6px); }
-  @starting-style { .launcher[open]::backdrop { background: rgba(10, 12, 16, 0); backdrop-filter: blur(0); } }
+  .launcher[open]::backdrop { background: rgba(10, 12, 16, 0.6); }
+  @starting-style { .launcher[open]::backdrop { background: rgba(10, 12, 16, 0); } }
   .launcher-head { display: flex; align-items: center; justify-content: space-between; }
   .launcher-head h2 { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.01em; }
   .launcher-sub { color: var(--muted); font-size: 0.95rem; margin: 0.25rem 0 1.25rem; }
@@ -385,12 +422,10 @@ const apps = (await getCollection('projects'))
     border: 1px solid var(--rule); cursor: pointer;
   }
   .launcher-close:hover { color: var(--accent); border-color: var(--accent); }
-  .launcher[open] :global(.apps li) { animation: tile-in 0.4s both cubic-bezier(0.2, 0.9, 0.3, 1.15); }
-  .launcher[open] :global(.apps li:nth-child(2)) { animation-delay: 0.06s; }
-  .launcher[open] :global(.apps li:nth-child(3)) { animation-delay: 0.12s; }
-  .launcher[open] :global(.apps li:nth-child(4)) { animation-delay: 0.18s; }
-  .launcher[open] :global(.apps li:nth-child(n+5)) { animation-delay: 0.24s; }
-  @keyframes tile-in { from { opacity: 0; transform: translateY(14px) scale(0.92); } }
+  .launcher[open] :global(.apps li) { animation: tile-in 0.22s both ease-out 0.05s; }
+  .launcher[open] :global(.apps li:nth-child(2)) { animation-delay: 0.08s; }
+  .launcher[open] :global(.apps li:nth-child(n+3)) { animation-delay: 0.11s; }
+  @keyframes tile-in { from { opacity: 0; } }
 
   @media (prefers-reduced-motion: reduce) {
     .launcher-btn::after, .launcher-btn:hover .dots i, .launcher[open] :global(.apps li) { animation: none; }
@@ -415,6 +450,7 @@ const apps = (await getCollection('projects'))
     .copy { display: none; }
     main { padding-top: 2rem; }
     .launcher-btn { width: auto; align-self: flex-start; }
-    .launcher { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0; max-height: 85vh; transform-origin: 50% 100%; }
+    .launcher { width: 100vw; max-width: 100vw; margin: auto 0 0; border-radius: 18px 18px 0 0; max-height: 85vh; transform: translateY(24px); }
+    @starting-style { .launcher[open] { opacity: 0; transform: translateY(24px); } }
   }
 </style>

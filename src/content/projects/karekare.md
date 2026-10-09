@@ -3,13 +3,13 @@ title: Kare Kare
 subtitle: Frame-by-frame animation for tablets and pens
 period: "2026"
 status: Active
-tags: [PWA, TypeScript, Canvas, WebCodecs]
+tags: [TypeScript, PWA, Canvas, WebCodecs]
 repo: https://github.com/mifarosa/karekare
-demo: https://mifarosa.com/karekare/
+demo: https://karekare.mifarosa.com
 icon: /apps/karekare.png
 featured: true
-order: 8
+order: 10
 ---
-A drawing and animation app in the spirit of FlipaClip, without the layer limit, watermark or ads. Pressure-sensitive pen, pencil and marker brushes, a fill bucket that tucks colour under line edges, unlimited layers and frames, onion skin, frame holds and a drag-to-reorder timeline. A sound track with a waveform under the frames and audio scrubbing helps with lip-sync.
+A free, offline and open-source animation app with no ads, no watermark and no layer limits. Pressure-sensitive brushes, a fill bucket that flows under line art, unlimited layers and frames, onion skin, a timeline with frame holds and adjustable FPS, and an audio track for lip sync.
 
-Exports GIF, MP4 with sound (encoded on the device with WebCodecs) and PNG sequences, with no watermark. Saves automatically to the browser's private file system and moves between devices as a `.zip` project file. Made for iPad and Chromebook: palm rejection once a stylus is used, pinch to zoom, two-finger tap to undo. Installable, works offline, Turkish and English interface.
+Exports GIF, MP4 (encoded on the device with WebCodecs, with sound), PNG sequences or a single PNG, and saves automatically. Built for tablets: with a pen, fingers only pan and zoom, and two- and three-finger taps undo and redo. Turkish and English interface, installs as an app and works offline.
