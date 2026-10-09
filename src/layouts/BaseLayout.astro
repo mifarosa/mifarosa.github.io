@@ -30,6 +30,7 @@ const nav = [
   { href: '/', label: 'Home' },
   { href: '/cv', label: 'CV' },
   { href: '/projects', label: 'Projects' },
+  { href: '/games', label: 'Games' },
   { href: '/blog', label: 'Blog' },
 ].map((n) => ({ ...n, current: n.href === '/' ? path === '/' : path === n.href || path.startsWith(`${n.href}/`) }));
 
