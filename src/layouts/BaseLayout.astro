@@ -3,7 +3,8 @@ import '../styles/global.css';
 import { getCollection } from 'astro:content';
 import AppTiles from '../components/AppTiles.astro';
 import { profile, contact } from '../data/profile';
-import { goatcounterUrl } from '../data/analytics';
+import ConsentBanner from '../components/ConsentBanner.astro';
+import { goatcounterUrl, gaMeasurementId } from '../data/analytics';
 
 interface Props {
   title?: string;
@@ -35,6 +36,9 @@ const nav = [
 ].map((n) => ({ ...n, current: n.href === '/' ? path === '/' : path === n.href || path.startsWith(`${n.href}/`) }));
 
 const year = new Date().getFullYear();
+
+// Google Analytics runs only on the live site, on tracked pages, once an ID is configured
+const useGa = import.meta.env.PROD && track && !!gaMeasurementId;
 
 // Projects with a live app (a `demo` URL) show up in the Apps launcher
 const apps = (await getCollection('projects'))
@@ -80,6 +84,25 @@ const apps = (await getCollection('projects'))
     {import.meta.env.PROD && track && (
       <script is:inline async data-goatcounter={`${goatcounterUrl}/count`} src="https://gc.zgo.at/count.js"></script>
     )}
+
+    <!-- Google Analytics with Consent Mode: no analytics cookies until the visitor accepts,
+         ads signals always off. The owner's "don't count my visits" flag turns it off too. -->
+    {useGa && (
+      <script is:inline define:vars={{ gaId: gaMeasurementId }}>
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        let choice = null, skip = false;
+        try { choice = localStorage.getItem('consent'); skip = localStorage.getItem('skipgc') === 't'; } catch (e) {}
+        if (skip) window[`ga-disable-${gaId}`] = true;
+        gtag('consent', 'default', {
+          analytics_storage: choice === 'granted' ? 'granted' : 'denied',
+          ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied',
+        });
+        gtag('js', new Date());
+        gtag('config', gaId);
+      </script>
+    )}
+    {useGa && <script is:inline async src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}></script>}
   </head>
   <body>
     <a class="skip-link" href="#content">Skip to content</a>
@@ -122,6 +145,7 @@ const apps = (await getCollection('projects'))
           <button type="button" class="theme-toggle" data-track="Tema değiştir" aria-label="Switch colour theme">
             <span class="theme-label">Dark theme</span>
           </button>
+          {useGa && <button type="button" class="cookie-settings" data-open-consent>Cookie settings</button>}
           <p class="copy">© {year} mifarosa.com</p>
         </div>
       </aside>
@@ -142,6 +166,8 @@ const apps = (await getCollection('projects'))
       </dialog>
     )}
 
+    {useGa && <ConsentBanner />}
+
     <script>
       // Theme toggle: remembers the visitor's choice
       const root = document.documentElement;
@@ -159,7 +185,7 @@ const apps = (await getCollection('projects'))
         sync();
       });
 
-      // Click events for GoatCounter: elements with data-track use that name;
+      // Click events for GoatCounter (and Google Analytics when on): elements with data-track use that name;
       // other outbound, mailto and download links get one automatically.
       // Internal links are already counted as page views.
       const trackName = (el: HTMLElement) => {
@@ -176,9 +202,9 @@ const apps = (await getCollection('projects'))
         if (e.type === 'auxclick' && e.button !== 1) return;   // middle click opens a tab, right click does not
         const el = (e.target as Element).closest<HTMLElement>('a, button');
         const name = el && trackName(el);
-        const gc = (window as any).goatcounter;
-        if (!name || !gc?.count) return;
-        gc.count({ path: name, title: name, referrer: '', event: true });
+        if (!name) return;
+        (window as any).goatcounter?.count?.({ path: name, title: name, referrer: '', event: true });
+        (window as any).gtag?.('event', 'tracked_click', { name, transport_type: 'beacon' });
       };
       document.addEventListener('click', trackClick);
       document.addEventListener('auxclick', trackClick);
@@ -280,6 +306,12 @@ const apps = (await getCollection('projects'))
   }
   .theme-toggle:hover { color: var(--ink); border-color: var(--muted); }
   .copy { font-size: 0.8rem; color: var(--muted); }
+  .cookie-settings {
+    font: inherit; font-size: 0.8rem; color: var(--muted);
+    background: none; border: 0; padding: 0; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 0.18em;
+  }
+  .cookie-settings:hover { color: var(--accent); }
 
   main { padding: 3.5rem 0 6rem; max-width: 46rem; min-width: 0; }
 

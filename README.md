@@ -99,6 +99,10 @@ The worker is deployed by Cloudflare Workers Builds, which is connected to this 
 3. **GitHub OAuth app** (GitHub → Settings → Developer settings → OAuth Apps → New): homepage `https://mifarosa.com`, callback `https://fancy-wildflower-a41a.m-farukgul.workers.dev/callback`.
 4. **Worker secrets** (Settings → Variables and Secrets, type *Secret*): `GOATCOUNTER_KEY`, `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` (from the OAuth app).
 
+### Google Analytics
+
+Google Analytics 4 runs next to GoatCounter once `gaMeasurementId` in `src/data/analytics.ts` is set to the stream's Measurement ID (`G-…`). To get one, go to analytics.google.com → Admin → Create → Property, then add a **Web** data stream for `https://mifarosa.com`. GA uses Consent Mode: a cookie bar asks first, analytics cookies are only set after **Accept**, and ad signals are always off. Click events go to GA as `tracked_click` with the same names GoatCounter uses. The "don't count my visits" toggle in `/admin` turns GA off for that browser too. `/privacy` explains all of this to visitors.
+
 ## Deployment
 
 Every push to `main` builds the site and deploys it with GitHub Actions (`.github/workflows/deploy.yml`).

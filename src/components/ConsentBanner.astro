@@ -1,0 +1,65 @@
+---
+// Cookie consent for Google Analytics. GA starts with analytics storage denied (see the
+// bootstrap in BaseLayout); this bar records the visitor's choice and updates consent.
+// "Cookie settings" in the sidebar reopens it.
+---
+<section class="consent" id="consent" aria-label="Cookie consent" hidden>
+  <p class="consent-text">
+    This site uses Google Analytics cookies to see how pages are used. Visits are also counted
+    without cookies by GoatCounter. <a href="/privacy">Privacy</a>
+  </p>
+  <div class="consent-actions">
+    <button type="button" class="consent-btn" data-consent="denied">Decline</button>
+    <button type="button" class="consent-btn primary" data-consent="granted">Accept</button>
+  </div>
+</section>
+
+<script>
+  const bar = document.getElementById('consent');
+  const read = () => { try { return localStorage.getItem('consent'); } catch (e) { return null; } };
+  const show = (on: boolean) => {
+    if (!bar) return;
+    bar.hidden = !on;
+    document.documentElement.classList.toggle('consent-open', on);
+  };
+
+  show(!read());
+
+  bar?.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach((btn) =>
+    btn.addEventListener('click', () => {
+      const choice = btn.dataset.consent as 'granted' | 'denied';
+      try { localStorage.setItem('consent', choice); } catch (e) {}
+      (window as any).gtag?.('consent', 'update', { analytics_storage: choice });
+      show(false);
+    }));
+
+  document.querySelectorAll('[data-open-consent]').forEach((el) =>
+    el.addEventListener('click', () => { show(true); bar?.querySelector<HTMLButtonElement>('.primary')?.focus(); }));
+</script>
+
+<style>
+  .consent {
+    position: fixed; left: 1rem; right: 1rem; bottom: 1rem; z-index: 50;
+    max-width: 44rem; margin: 0 auto;
+    display: flex; align-items: center; gap: 0.75rem 1.25rem; flex-wrap: wrap;
+    padding: 0.85rem 1rem;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    font-size: 0.9rem;
+  }
+  .consent[hidden] { display: none; }
+  .consent-text { flex: 1 1 18rem; color: var(--ink-soft); line-height: 1.5; }
+  .consent-actions { display: flex; gap: 0.5rem; margin-left: auto; }
+  .consent-btn {
+    font: inherit; font-weight: 500;
+    padding: 0.4rem 0.9rem; border-radius: 6px; cursor: pointer;
+    color: var(--ink); background: var(--bg); border: 1px solid var(--rule);
+  }
+  .consent-btn:hover { border-color: var(--muted); }
+  .consent-btn.primary { color: var(--surface); background: var(--accent); border-color: var(--accent); }
+  .consent-btn.primary:hover { filter: brightness(1.08); }
+  /* Keep the end of the page reachable while the bar is shown */
+  :global(html.consent-open body) { padding-bottom: 7rem; }
+  @media print { .consent { display: none !important; } }
+</style>
