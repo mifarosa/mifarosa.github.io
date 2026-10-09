@@ -1,0 +1,68 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { render } from 'astro:content';
+
+// One game on the Games page: screenshot, name, description and a Play button.
+// The screenshot opens the game too; it is hidden from keyboard and screen readers
+// because the Play button already does the same.
+interface Props {
+  game: CollectionEntry<'games'>;
+}
+const { game } = Astro.props;
+const { title, subtitle, play, repo, icon, cover, tags } = game.data;
+const { Content } = await render(game);
+---
+<article class="game">
+  {cover && (
+    <a class="cover" href={play} tabindex="-1" aria-hidden="true" data-track={`Oyun: ${title}`}>
+      <img src={cover} alt="" loading="lazy" decoding="async" />
+    </a>
+  )}
+  <div class="game-body">
+    <header class="game-head">
+      {icon && <img class="game-icon" src={icon} alt="" width="48" height="48" decoding="async" />}
+      <div>
+        <h2 class="game-title">{title}</h2>
+        <p class="meta">{subtitle}</p>
+      </div>
+    </header>
+    <div class="game-text"><Content /></div>
+    {tags.length > 0 && <p class="stack"><strong>Stack:</strong> {tags.join(', ')}</p>}
+    <p class="link-row">
+      <a class="button" href={play} data-track={`Oyun: ${title}`}>Play <span aria-hidden="true">→</span></a>
+      {repo && <a href={repo} rel="noopener" data-track={`Proje kodu: ${title}`}>Source code</a>}
+    </p>
+  </div>
+</article>
+
+<style>
+  .game {
+    overflow: hidden;
+    border: 1px solid var(--rule);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+  .cover { display: block; border-bottom: 1px solid var(--rule); }
+  .cover img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  .cover:hover img { transform: scale(1.02); }
+  .game-body { padding: 1.25rem 1.25rem 1.4rem; }
+  .game-head { display: flex; align-items: center; gap: 0.85rem; margin-bottom: 0.9rem; }
+  .game-icon { width: 3rem; height: 3rem; border-radius: 12px; flex-shrink: 0; }
+  .game-title { font-size: 1.25rem; font-weight: 800; line-height: 1.25; }
+  .game-text { color: var(--ink-soft); }
+  .game-text :global(p) { margin-bottom: 0.75rem; }
+  .stack { margin-bottom: 1rem; }
+  .link-row { align-items: center; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cover img { transition: none; }
+    .cover:hover img { transform: none; }
+  }
+</style>

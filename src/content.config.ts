@@ -19,6 +19,21 @@ const projects = defineCollection({
   }),
 });
 
+// Each browser game is one Markdown file in src/content/games/
+const games = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/games' }),
+  schema: z.object({
+    title: z.string(),
+    subtitle: z.string(),
+    play: z.string().url(),                    // where the game runs
+    repo: z.string().url().optional(),
+    icon: z.string().optional(),               // square icon under public/
+    cover: z.string().optional(),              // 16:9 screenshot under public/
+    tags: z.array(z.string()).default([]),
+    order: z.number().default(100),
+  }),
+});
+
 // Blog posts live in src/content/blog/; drafts are hidden from the site
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/blog' }),
@@ -33,4 +48,4 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { projects, blog };
+export const collections = { projects, games, blog };
