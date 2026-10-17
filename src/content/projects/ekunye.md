@@ -10,6 +10,6 @@ icon: /apps/ekunye.png
 featured: true
 order: 4
 ---
-Keeps the details you keep typing into forms, such as addresses, IBANs, ID numbers and emergency contacts, in one list. Tap a line to copy it, hold it to edit. Comes with ready-made field groups, hides sensitive values behind dots while still copying them, and backs up to a JSON file you can restore on any device. Turkish and English interface.
+Keeps the details you keep typing into forms, such as addresses, IBANs, ID numbers and emergency contacts, in one list. Tap a line to copy it, hold it to edit. Comes with ready-made field groups and typed fields with fitting keyboards, formatting and checks, lets you reorder entries with up and down arrows, hides sensitive values behind dots while still copying them, and backs up to a JSON file you can restore on any device. Turkish and English interface.
 
 Installable on Android and iOS and works offline. By default the data stays in the browser on the device, with no account needed. Optional sync with Google sign-in keeps the list the same on phone and computer: each entry is encrypted in the browser with AES-256-GCM before upload, so the server only stores ciphertext. No dependencies and no build step.
