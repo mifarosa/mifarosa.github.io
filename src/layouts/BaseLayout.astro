@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import AppTiles from '../components/AppTiles.astro';
 import { profile, contact } from '../data/profile';
 import ConsentBanner from '../components/ConsentBanner.astro';
+import Logo from '../components/Logo.astro';
 import { goatcounterUrl, gaMeasurementId } from '../data/analytics';
 
 interface Props {
@@ -55,6 +56,8 @@ const apps = (await getCollection('projects'))
     <link rel="canonical" href={canonical} />
     {noindex && <meta name="robots" content="noindex, nofollow" />}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
     <meta name="theme-color" content="#f7f8fa" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#14161b" media="(prefers-color-scheme: dark)" />
 
@@ -63,7 +66,11 @@ const apps = (await getCollection('projects'))
     <meta property="og:title" content={fullTitle} />
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:image" content={new URL('/og-image.png', Astro.site)} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="mifarosa logo: a geometric rose" />
+    <meta name="twitter:card" content="summary_large_image" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -110,7 +117,7 @@ const apps = (await getCollection('projects'))
     <div class="shell">
       <aside class="sidebar">
         <div class="identity">
-          <a href="/" class="name">{profile.name}</a>
+          <a href="/" class="name"><Logo size={34} /><span>{profile.name}</span></a>
           <p class="role">{profile.title}</p>
           <p class="place">{profile.location}</p>
         </div>
@@ -274,8 +281,9 @@ const apps = (await getCollection('projects'))
     .sidebar { padding-top: 2rem; padding-bottom: 1rem; gap: 1.25rem; }
     .sidebar .toc a { padding-top: 0.15rem; padding-bottom: 0.15rem; }
   }
+  /* Logo above the name in the sidebar; beside it in the phone header (see below) */
   .name {
-    display: block;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem;
     color: var(--ink);
     text-decoration: none;
     font-size: 1.3rem;
@@ -442,6 +450,7 @@ const apps = (await getCollection('projects'))
       gap: 1.25rem;
       border-bottom: 1px solid var(--rule);
     }
+    .name { flex-direction: row; align-items: center; gap: 0.6rem; }
     .toc ul { display: flex; flex-wrap: wrap; gap: 0.25rem 1.1rem; }
     .toc a { padding: 0.25rem 0; border-left: none; border-bottom: 2px solid transparent; }
     .toc a[aria-current] { border-bottom-color: var(--accent); }

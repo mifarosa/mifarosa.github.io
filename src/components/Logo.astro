@@ -1,0 +1,21 @@
+---
+// The mifarosa mark: four petals in two tones of rose, a geometric rose.
+// Colours come from --logo-a / --logo-b (global.css), so it follows the theme.
+interface Props {
+  size?: number | string;
+  title?: string;   // accessible name; omit when the mark sits next to visible text
+}
+const { size = 32, title } = Astro.props;
+const petal = 'M16 16C16 9.5 19.5 4.5 26 4.8 27 11 23 16 16 16Z';
+---
+<svg class="logo" viewBox="0 0 32 32" width={size} height={size}
+  role={title ? 'img' : undefined} aria-label={title} aria-hidden={title ? undefined : 'true'}>
+  <path d={petal} fill="var(--logo-a)" />
+  <path d={petal} fill="var(--logo-b)" transform="rotate(90 16 16)" />
+  <path d={petal} fill="var(--logo-a)" transform="rotate(180 16 16)" />
+  <path d={petal} fill="var(--logo-b)" transform="rotate(270 16 16)" />
+</svg>
+
+<style>
+  .logo { display: block; flex: none; }
+</style>
