@@ -1,169 +1,164 @@
 ---
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import SectionTitle from '../components/SectionTitle.astro';
 import { profile, contact, experience, skills } from '../data/profile';
 
-// Home page: a short introduction that points to the CV, projects and writing.
-// The full CV lives on /cv.
+// Home page as a bento grid: one tile per thing worth a click.
+// The full CV lives on /cv, every project on /projects.
 const projects = (await getCollection('projects')).sort((a, b) => a.data.order - b.data.order);
-const featured = projects.filter((p) => p.data.featured).slice(0, 3);
+const apps = projects.filter((p) => p.data.demo);
+const games = (await getCollection('games')).sort((a, b) => a.data.order - b.data.order);
+const game = games[0];
 const posts = (await getCollection('blog', ({ data }) => !data.draft))
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf())
-  .slice(0, 3);
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+const post = posts[0];
 
-// "Right now" facts, derived from the data so they stay in sync
 const currentJob = experience[0];
 const learning = skills.find((s) => s.group === 'Currently learning')?.items ?? [];
-const building = projects.filter((p) => p.data.status === 'Active');
 
 const postDate = (d: Date) => d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 ---
 <BaseLayout>
-  <!-- ABOUT -->
-  <section id="about" class="section intro">
-    <p class="headline">{profile.headline}</p>
-    <p class="lede">{profile.summary}</p>
-
-    <dl class="now">
-      <div>
-        <dt>Working</dt>
-        <dd>{currentJob.role} at {currentJob.company}</dd>
-      </div>
-      {building.length > 0 && (
-        <div>
-          <dt>Building</dt>
-          <dd>
-            {building.map((p, i) => (
-              <>{i > 0 && ', '}<a href={p.data.demo ?? p.data.repo ?? '/projects'} rel="noopener">{p.data.title}</a></>
-            ))}
-            {' '}and <a href="/projects">a few other side projects</a>
-          </dd>
-        </div>
-      )}
-      {learning.length > 0 && (
-        <div>
-          <dt>Learning</dt>
-          <dd>{learning.join(', ')}</dd>
-        </div>
-      )}
-    </dl>
-
-    <p class="cta">
-      <a class="button" href="/cv" data-track="CV sayfası">View my CV</a>
-      {profile.cvUrl && <a class="ghost-button" href={profile.cvUrl} download data-track="CV indirme">Download CV (PDF)</a>}
-    </p>
-  </section>
-
-  <!-- PROJECTS -->
-  <section id="projects" class="section">
-    <SectionTitle id="projects" title="Selected projects" />
-    <ul class="cards">
-      {featured.map(({ data }) => (
-        <li class="card">
-          <div class="card-head">
-            <h3 class="card-title">{data.title}</h3>
-            <span class={`status status-${data.status.toLowerCase()}`}>{data.status}</span>
-          </div>
-          <p class="card-desc">{data.subtitle}</p>
-          <p class="card-stack">{data.tags.slice(0, 4).join(' · ')}</p>
-          <p class="card-links">
-            {data.demo && <a href={data.demo} rel="noopener" data-track={`Uygulama: ${data.title}`}>Open app</a>}
-            {data.repo && <a href={data.repo} rel="noopener" data-track={`Proje kodu: ${data.title}`}>Source</a>}
-          </p>
-        </li>
-      ))}
-    </ul>
-    <p class="more"><a href="/projects">All {projects.length} projects →</a></p>
-  </section>
-
-  {posts.length > 0 && (
-    <section id="writing" class="section">
-      <SectionTitle id="writing" title="Latest writing" />
-      <ul class="posts">
-        {posts.map((p) => (
-          <li>
-            <time datetime={p.data.date.toISOString()}>{postDate(p.data.date)}</time>
-            <a class="post-title" href={`/blog/${p.id}`} lang={p.data.lang}>{p.data.title}</a>
-            <p lang={p.data.lang}>{p.data.description}</p>
-          </li>
-        ))}
-      </ul>
-      <p class="more"><a href="/blog">All posts →</a></p>
+  <div class="bento">
+    <section class="tile intro">
+      <p class="eyebrow">Hi, I'm Faruk 👋</p>
+      <p class="headline">{profile.headline}</p>
+      <p class="intro-links">
+        <a class="button" href="/cv" data-track="CV sayfası">View my CV</a>
+        <a class="ghost" href="/projects">All projects</a>
+      </p>
     </section>
-  )}
 
-  <!-- CONTACT -->
-  <section id="contact" class="section">
-    <SectionTitle id="contact" title="Get in touch" />
-    <p class="lede">Questions about a project, a role or something I wrote? Email is the fastest way to reach me.</p>
-    <p class="link-row contact-row">
-      <a href={`mailto:${contact.emails[0]}`}>{contact.emails[0]}</a>
-      <a href={contact.linkedin} rel="noopener">LinkedIn</a>
-      <a href={contact.github[0]} rel="noopener">GitHub</a>
-    </p>
-  </section>
+    <a class="tile work" href="/cv">
+      <span class="label">Working</span>
+      <strong>{currentJob.role}</strong>
+      <span class="big">{currentJob.company}</span>
+      {learning.length > 0 && <span class="small">Learning {learning.join(', ')}</span>}
+    </a>
+
+    <a class="tile soon" href="/projects">
+      <span class="emoji" aria-hidden="true">📱</span>
+      <strong>App Store &amp; Google Play</strong>
+      <span class="small">Native versions are on the way</span>
+    </a>
+
+    {contact.coffee && (
+      <a class="tile coffee" href={contact.coffee} rel="noopener" data-track="Kahve">
+        <span class="emoji" aria-hidden="true">☕</span>
+        <strong>Buy me a coffee</strong>
+        <span class="small">Keeps the apps free</span>
+      </a>
+    )}
+
+    {apps.map(({ data }) => (
+      <a class="tile app" href={data.demo} rel="noopener" data-track={`Uygulama: ${data.title}`}>
+        {data.icon
+          ? <img src={data.icon} alt="" width="56" height="56" decoding="async" />
+          : <span class="app-initial" aria-hidden="true">{data.title.charAt(0)}</span>}
+        <strong>{data.title}</strong>
+        <span class="small">{data.subtitle}</span>
+      </a>
+    ))}
+
+    {post && (
+      <a class="tile post" href={`/blog/${post.id}`}>
+        <span class="label">Latest post · {postDate(post.data.date)}</span>
+        <strong lang={post.data.lang}>{post.data.title}</strong>
+        <span class="small" lang={post.data.lang}>{post.data.description}</span>
+      </a>
+    )}
+
+    {game && (
+      <a class="tile game" href={game.data.play} rel="noopener" data-track={`Oyun: ${game.data.title}`}>
+        {game.data.cover && <img src={game.data.cover} alt="" decoding="async" />}
+        <span class="game-label"><strong>{game.data.title}</strong> · {game.data.subtitle}</span>
+      </a>
+    )}
+
+    <a class="tile social github" href={contact.github[0]} rel="noopener">
+      <strong>GitHub</strong><span class="small">@{contact.github[0].split('/').pop()}</span>
+    </a>
+    <a class="tile social linkedin" href={contact.linkedin} rel="noopener">
+      <strong>LinkedIn</strong><span class="small">Let's connect</span>
+    </a>
+    <a class="tile social newsletter" href={contact.newsletter} rel="noopener">
+      <strong>Patch Incoming</strong><span class="small">Newsletter</span>
+    </a>
+    <a class="tile social mail" href={`mailto:${contact.emails[0]}`}>
+      <strong>Email</strong><span class="small">Say hello</span>
+    </a>
+  </div>
 </BaseLayout>
 
 <style>
-  /* ---------- Intro ---------- */
-  .headline {
-    font-size: clamp(1.75rem, 3.4vw, 2.5rem);
-    font-weight: 800;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    color: var(--ink);
-    max-width: 22em;
-    margin-bottom: 1.5rem;
-    text-wrap: balance;
-  }
-  .lede { margin-bottom: 2rem; }
+  :global(main:has(.bento)) { max-width: 54rem; }
+  /* Contact links and coffee are tiles here, so the sidebar copies are hidden on this page */
+  :global(.shell:has(.bento) aside .contact), :global(.shell:has(.bento) aside .coffee) { display: none; }
 
-  .now {
+  .bento {
     display: grid;
-    gap: 0.5rem;
-    padding: 1.1rem 1.25rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-auto-rows: minmax(9.5rem, auto);
+    gap: 0.9rem;
+  }
+  .tile {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    padding: 1.1rem 1.2rem;
     background: var(--surface);
     border: 1px solid var(--rule);
-    border-left: 3px solid var(--accent);
-    border-radius: 6px;
+    border-radius: 22px;
+    color: var(--ink);
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   }
-  .now div { display: grid; grid-template-columns: 7rem 1fr; gap: 1rem; }
-  .now dt { color: var(--muted); }
-  .now dd { color: var(--ink); }
+  a.tile:hover { transform: translateY(-2px); border-color: var(--accent); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08); }
+  .tile strong { font-weight: 700; line-height: 1.25; }
+  .small { color: var(--muted); font-size: 0.85rem; line-height: 1.4; }
+  .label { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .emoji { font-size: 1.8rem; line-height: 1; margin-bottom: auto; }
 
-  .cta { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 2rem; }
-  .ghost-button {
+  .intro { grid-column: span 2; grid-row: span 2; justify-content: space-between; background: var(--accent-soft); border-color: transparent; }
+  .eyebrow { color: var(--accent); font-weight: 700; }
+  .headline { font-size: 1.45rem; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; text-wrap: balance; }
+  .intro-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+  .ghost {
     display: inline-block; padding: 0.5rem 1rem; border-radius: 6px;
-    border: 1px solid var(--rule); background: var(--surface);
-    color: var(--ink); text-decoration: none; font-weight: 500;
+    border: 1px solid var(--rule); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 500;
   }
-  .ghost-button:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* ---------- Project cards ---------- */
-  .cards { list-style: none; display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: 1rem; }
-  .card {
-    display: flex; flex-direction: column; gap: 0.4rem;
-    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
-    padding: 1rem 1.1rem;
+  .work { grid-column: span 2; }
+  .work .big { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; margin-bottom: auto; }
+
+  .coffee { background: #ffdd00; border-color: #ffdd00; color: #16181d; }
+  .coffee .small { color: #4a4300; }
+
+  .app img, .app-initial { width: 56px; height: 56px; border-radius: 14px; margin-bottom: 0.6rem; flex: none; }
+  .app-initial { display: grid; place-items: center; background: var(--accent); color: #fff; font-weight: 800; font-size: 1.5rem; }
+
+  .post { grid-column: span 2; }
+  .post strong { font-size: 1.15rem; margin-top: auto; }
+  .post .small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+  .game { grid-column: span 2; padding: 0; position: relative; }
+  .game img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .game-label {
+    position: absolute; left: 0.8rem; bottom: 0.8rem; padding: 0.35rem 0.75rem; border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92); color: #16181d; font-size: 0.85rem;
   }
-  .card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.75rem; }
-  .card-title { font-size: 1.05rem; font-weight: 700; line-height: 1.3; }
-  .card-desc { color: var(--ink-soft); font-size: 0.95rem; line-height: 1.5; }
-  .card-stack { color: var(--muted); font-size: 0.82rem; margin-top: auto; padding-top: 0.25rem; }
-  .card-links { display: flex; gap: 1rem; font-size: 0.9rem; }
 
-  /* ---------- Writing ---------- */
-  .posts { list-style: none; display: grid; gap: 1.25rem; }
-  .posts time { display: block; color: var(--muted); font-size: 0.85rem; }
-  .post-title { font-weight: 700; color: var(--ink); text-decoration: none; }
-  .post-title:hover { color: var(--accent); text-decoration: underline; }
-  .posts p { color: var(--ink-soft); margin-top: 0.2rem; }
-
-  .more { margin-top: 1.5rem; }
-  .contact-row { margin-top: 1rem; }
+  .social { justify-content: flex-end; }
+  .social strong { font-size: 1.05rem; }
+  .github { background: #16181d; border-color: #16181d; color: #fff; }
+  .github .small { color: #b8bec9; }
+  .linkedin { background: #0a66c2; border-color: #0a66c2; color: #fff; }
+  .linkedin .small { color: #cfe2f6; }
+  :global([data-theme='dark']) .github { background: #2d333b; border-color: #2d333b; }
 
   @media (max-width: 640px) {
-    .now div { grid-template-columns: 1fr; gap: 0.15rem; }
+    .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: minmax(8.5rem, auto); gap: 0.7rem; }
+    .intro, .work, .post, .game { grid-column: span 2; }
+    .intro { grid-row: auto; gap: 1rem; }
+    .game { min-height: 11rem; }
   }
 </style>
