@@ -13,6 +13,8 @@
   --rule: #e2e5ea;
   --accent: #b3264f;          /* rose, from "rosa" in mifarosa */
   --accent-soft: #fbe8ee;
+  --logo-a: #b3264f;           /* logo petals, two tones of rose */
+  --logo-b: #7d1a3a;
   --ok: #1f7a4d;
   --warn: #9a5b00;
   --info: #2f5bb7;
@@ -33,6 +35,8 @@
   --rule: #2b2f38;
   --accent: #f28aa8;
   --accent-soft: rgba(242, 138, 168, 0.12);
+  --logo-a: #f28aa8;
+  --logo-b: #d4557a;
   --ok: #6fcf97;
   --warn: #e6b45c;
   --info: #8fb0f5;
@@ -49,6 +53,8 @@
     --rule: #2b2f38;
     --accent: #f28aa8;
     --accent-soft: rgba(242, 138, 168, 0.12);
+    --logo-a: #f28aa8;
+    --logo-b: #d4557a;
     --ok: #6fcf97;
     --warn: #e6b45c;
     --info: #8fb0f5;
