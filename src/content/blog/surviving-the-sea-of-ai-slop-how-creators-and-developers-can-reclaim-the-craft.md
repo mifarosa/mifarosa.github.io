@@ -12,7 +12,7 @@ lang: en
 draft: false
 ---
 
-# # Surviving the Sea of AI Slop: How Creators and Developers Can Reclaim the Craft
+# Surviving the Sea of AI Slop: How Creators and Developers Can Reclaim the Craft
 
 If you open any social media feed, browse a tech forum, or clone a trendy open-source repository today, you can feel it. The internet is slowly turning into a massive, echoing chamber of \*\*"AI slop"\*\*—endless streams of generic blog posts, boilerplate code that looks right at first glance but breaks at the edges, and auto-generated media designed for metrics rather than humans.
 
@@ -26,7 +26,7 @@ We used to live in an era where producing content and code was hard, so scarcity
 
 So, in a world drowning in digital noise, what can we—as developers, builders, and actual human craftspeople—do to stay sharp?
 
----
+***
 
 ## 1. Shift from "Syntax Producers" to "Architects of Intent"
 
@@ -58,7 +58,7 @@ AI slop is designed to game SEO algorithms, engagement loops, and metric dashboa
 
 \* \*\*The Fix:\*\* Build for humans. Write documentation that sounds like a tired senior developer talking to a junior over coffee. Build open-source tools that solve your own daily annoyances. Create things that you would actually want to use if you stumbled upon them on a random Tuesday.
 
----
+***
 
 ## Conclusion: The Era of the True Maker
 
