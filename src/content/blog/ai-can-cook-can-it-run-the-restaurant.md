@@ -14,7 +14,6 @@ lang: en
 draft: false
 ---
 
-````plain
 # AI Can Cook. Can It Run the Restaurant?
 
 
@@ -327,4 +326,3 @@ What makes you special now is this: **picking the right problem, proving that yo
 
 
 The robot can cook. Someone still has to run the restaurant.
-````
