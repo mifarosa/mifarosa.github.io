@@ -1,0 +1,65 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const projects = await getCollection('projects');
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+const { title, subtitle, period, status, tags, repo, demo, icon } = project.data;
+---
+<BaseLayout title={title} description={subtitle}>
+  <article>
+    <p><a href="/projects">All projects</a></p>
+    <header class="head">
+      {icon
+        ? <img class="icon" src={icon} alt="" width="88" height="88" />
+        : <span class="icon initial" aria-hidden="true">{title.charAt(0)}</span>}
+      <div>
+        <h1 class="title">{title}</h1>
+        <p class="sub">{subtitle}</p>
+        <p class="meta"><span class={`status status-${status.toLowerCase()}`}>{status}</span> · {period}</p>
+      </div>
+    </header>
+
+    {(demo || repo) && (
+      <p class="actions">
+        {demo && <a class="button" href={demo} rel="noopener" data-track={`Uygulama: ${title}`}>Open app</a>}
+        {repo && <a class="ghost" href={repo} rel="noopener" data-track={`Proje kodu: ${title}`}>Source code</a>}
+      </p>
+    )}
+
+    <div class="prose"><Content /></div>
+
+    <ul class="tags" aria-label="Stack">
+      {tags.map((tag) => <li>{tag}</li>)}
+    </ul>
+  </article>
+</BaseLayout>
+
+<style>
+  .head { display: flex; gap: 1.25rem; align-items: center; margin: 1.5rem 0 1.5rem; }
+  .icon { width: 88px; height: 88px; border-radius: 22px; flex: none; }
+  .initial { display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); font-weight: 800; font-size: 2.2rem; }
+  .title { font-size: clamp(1.75rem, 3.5vw, 2.3rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+  .sub { color: var(--ink-soft); font-size: 1.05rem; margin-top: 0.25rem; }
+  .meta { color: var(--muted); font-size: 0.9rem; margin-top: 0.4rem; }
+  .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 2rem; }
+  .ghost {
+    display: inline-block; padding: 0.5rem 1rem; border-radius: 6px;
+    border: 1px solid var(--rule); background: var(--surface); color: var(--ink); text-decoration: none; font-weight: 500;
+  }
+  .ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .prose { max-width: var(--measure); color: var(--ink-soft); }
+  .prose :global(p) { margin-bottom: 1rem; }
+  .prose :global(code) { background: var(--surface); border: 1px solid var(--rule); padding: 0.05rem 0.3rem; border-radius: 4px; }
+  .tags { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.5rem; }
+  .tags li { font-size: 0.85rem; color: var(--ink-soft); background: var(--surface); border: 1px solid var(--rule); border-radius: 999px; padding: 0.2rem 0.75rem; }
+  @media (max-width: 640px) {
+    .head { align-items: flex-start; }
+    .icon { width: 64px; height: 64px; border-radius: 16px; }
+  }
+</style>

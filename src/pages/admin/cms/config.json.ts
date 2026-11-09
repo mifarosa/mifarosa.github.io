@@ -48,6 +48,7 @@ const projects = {
   format: 'frontmatter',
   media_folder: '/public/apps',
   public_folder: '/apps',
+  preview_path: 'projects/{{slug}}',
   sortable_fields: ['order', 'title'],
   fields: [
     { name: 'title', label: 'Ad', widget: 'string' },
