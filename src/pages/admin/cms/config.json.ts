@@ -122,6 +122,7 @@ const profile = {
           name: 'contact', label: 'İletişim', widget: 'object', fields: [
             strings('emails', 'E-postalar'),
             text('linkedin', 'LinkedIn'),
+            text('instagram', 'Instagram', { required: false, hint: 'Boş bırakılırsa Instagram bağlantıları gizlenir.' }),
             strings('github', 'GitHub hesapları'),
             text('blog', 'Eski blog'),
             text('newsletter', 'Bülten'),

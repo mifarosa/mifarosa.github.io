@@ -143,6 +143,7 @@ const apps = (await getCollection('projects'))
         <ul class="contact" aria-label="Contact">
           <li><a href={`mailto:${contact.emails[0]}`} data-track="E-posta">{contact.emails[0]}</a></li>
           <li><a href={contact.linkedin} rel="noopener" data-track="LinkedIn">LinkedIn</a></li>
+          {contact.instagram && <li><a href={contact.instagram} rel="noopener" data-track="Instagram">Instagram</a></li>}
           <li><a href={contact.github[0]} rel="noopener" data-track="GitHub">GitHub</a></li>
           <li><a href={contact.newsletter} rel="noopener" data-track="Bülten">Patch Incoming newsletter</a></li>
           {profile.cvUrl && <li><a href={profile.cvUrl} download data-track="CV indirme">Download CV (PDF)</a></li>}

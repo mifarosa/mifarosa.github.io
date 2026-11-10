@@ -15,6 +15,7 @@ export type Profile = {
 export type Contact = {
   emails: string[];
   linkedin: string;
+  instagram?: string; // Instagram profile; empty hides the links
   github: string[];
   blog: string;
   newsletter: string;
