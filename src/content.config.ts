@@ -48,4 +48,16 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { projects, games, blog };
+// Unfiltered photo posts (food, travel, daily life) live in src/content/unfiltered/; the body is the caption
+const unfiltered = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/unfiltered' }),
+  schema: z.object({
+    date: z.coerce.date(),
+    photos: z.array(z.object({ src: z.string(), alt: z.string().optional() })).min(1), // first one is the grid thumbnail
+    place: z.string().optional(),
+    kind: z.enum(['food', 'travel', 'daily']).default('daily'),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { projects, games, blog, unfiltered };

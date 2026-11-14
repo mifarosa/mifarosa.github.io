@@ -34,6 +34,7 @@ const nav = [
   { href: '/projects', label: 'Projects' },
   { href: '/games', label: 'Games' },
   { href: '/blog', label: 'Blog' },
+  { href: '/unfiltered', label: 'Unfiltered' },
 ].map((n) => ({ ...n, current: n.href === '/' ? path === '/' : path === n.href || path.startsWith(`${n.href}/`) }));
 
 const year = new Date().getFullYear();

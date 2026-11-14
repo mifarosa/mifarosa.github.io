@@ -1,0 +1,92 @@
+---
+import { render } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { kinds, longDate, unfilteredPosts } from '../../data/unfiltered';
+
+export async function getStaticPaths() {
+  const posts = await unfilteredPosts();
+  // Newer and older neighbours for the prev/next links
+  return posts.map((post, i) => ({ params: { slug: post.id }, props: { post, newer: posts[i - 1], older: posts[i + 1] } }));
+}
+
+const { post, newer, older } = Astro.props;
+const { Content } = await render(post);
+const { date, photos, place, kind } = post.data;
+const title = place ? `${place}, ${longDate(date)}` : longDate(date);
+const description = post.body?.trim().slice(0, 150) || `${kinds[kind].label} photo from ${longDate(date)}.`;
+---
+<BaseLayout title={title} description={description}>
+  <p><a href="/unfiltered">All photos</a></p>
+  <article class="post">
+    <div class="carousel" aria-roledescription="carousel" aria-label="Photos">
+      <ul class="track" tabindex="0">
+        {photos.map((p, i) => (
+          <li aria-label={`${i + 1} of ${photos.length}`}>
+            <img src={p.src} alt={p.alt ?? ''} loading={i === 0 ? 'eager' : 'lazy'} decoding="async" />
+          </li>
+        ))}
+      </ul>
+      {photos.length > 1 && (
+        <>
+          <button type="button" class="nav prev" aria-label="Previous photo">‹</button>
+          <button type="button" class="nav next" aria-label="Next photo">›</button>
+          <div class="dots" aria-hidden="true">{photos.map((_, i) => <span class={i === 0 ? 'on' : ''}></span>)}</div>
+        </>
+      )}
+    </div>
+
+    <div class="meta">
+      <span class="kind">{kinds[kind].emoji} {kinds[kind].label}</span>
+      {place && <span>📍 {place}</span>}
+      <time datetime={date.toISOString()}>{longDate(date)}</time>
+    </div>
+    <div class="caption"><Content /></div>
+  </article>
+
+  <nav class="pager" aria-label="More photos">
+    {newer ? <a href={`/unfiltered/${newer.id}`}>‹ Newer</a> : <span></span>}
+    {older ? <a href={`/unfiltered/${older.id}`}>Older ›</a> : <span></span>}
+  </nav>
+</BaseLayout>
+
+<script>
+  // Swipe on phones (scroll-snap), arrow buttons on desktop, dots follow the visible photo
+  document.querySelectorAll<HTMLElement>('.carousel').forEach((c) => {
+    const track = c.querySelector<HTMLElement>('.track')!;
+    const dots = c.querySelectorAll('.dots span');
+    const go = (dir: number) => track.scrollBy({ left: dir * track.clientWidth, behavior: 'smooth' });
+    c.querySelector('.prev')?.addEventListener('click', () => go(-1));
+    c.querySelector('.next')?.addEventListener('click', () => go(1));
+    track.addEventListener('scroll', () => {
+      const i = Math.round(track.scrollLeft / track.clientWidth);
+      dots.forEach((d, j) => d.classList.toggle('on', i === j));
+    }, { passive: true });
+    track.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') go(-1);
+      if (e.key === 'ArrowRight') go(1);
+    });
+  });
+</script>
+
+<style>
+  .post { max-width: 36rem; margin-top: 1rem; }
+  .carousel { position: relative; border-radius: 14px; overflow: hidden; background: var(--surface); }
+  .track { list-style: none; display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .track::-webkit-scrollbar { display: none; }
+  .track li { flex: 0 0 100%; scroll-snap-align: center; aspect-ratio: 4 / 5; }
+  .track img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .nav {
+    position: absolute; top: 50%; transform: translateY(-50%); width: 2.2rem; height: 2.2rem; border-radius: 50%;
+    border: 0; background: rgba(255, 255, 255, 0.85); color: #16181d; font-size: 1.4rem; line-height: 1; cursor: pointer;
+  }
+  .prev { left: 0.6rem; }
+  .next { right: 0.6rem; }
+  .dots { position: absolute; left: 0; right: 0; bottom: 0.7rem; display: flex; justify-content: center; gap: 0.35rem; }
+  .dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.55); }
+  .dots span.on { background: #fff; }
+  @media (hover: none) { .nav { display: none; } }
+  .meta { display: flex; flex-wrap: wrap; gap: 0.4rem 1rem; margin-top: 0.9rem; color: var(--muted); font-size: 0.9rem; }
+  .kind { color: var(--ink); font-weight: 600; }
+  .caption { margin-top: 0.6rem; white-space: pre-line; }
+  .pager { max-width: 36rem; display: flex; justify-content: space-between; margin-top: 2rem; }
+</style>
