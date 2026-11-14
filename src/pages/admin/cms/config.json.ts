@@ -93,6 +93,42 @@ const games = {
   ],
 };
 
+// Photo posts for /unfiltered. Uploads are resized and re-encoded as WebP (see media_libraries
+// below), which also drops EXIF data such as the GPS position the phone stored in the photo.
+const unfiltered = {
+  name: 'unfiltered',
+  label: 'Unfiltered',
+  label_singular: 'Paylaşım',
+  folder: 'src/content/unfiltered',
+  create: true,
+  slug: "{{year}}-{{month}}-{{day}}-{{hour}}{{minute}}",
+  extension: 'md',
+  format: 'frontmatter',
+  media_folder: '/public/unfiltered',
+  public_folder: '/unfiltered',
+  preview_path: 'unfiltered/{{slug}}',
+  sortable_fields: ['date'],
+  summary: "{{date | date('YYYY-MM-DD')}} · {{place}}",
+  fields: [
+    { name: 'date', label: 'Tarih', widget: 'datetime', type: 'date', format: 'YYYY-MM-DD', default: '{{now}}' },
+    {
+      name: 'photos', label: 'Fotoğraflar', widget: 'list', min: 1, summary: '{{alt}}',
+      hint: 'İlki ızgarada kapak olarak görünür. Fotoğraflar küçültülüp WebP yapılır, konum bilgisi silinir.',
+      fields: [
+        { name: 'src', label: 'Fotoğraf', widget: 'image' },
+        { name: 'alt', label: 'Kısa tarif', widget: 'string', required: false, hint: 'Ekran okuyucular için, ör. "Fırında mantı".' },
+      ],
+    },
+    { name: 'place', label: 'Yer', widget: 'string', required: false, hint: 'Ör. Kadıköy, İstanbul' },
+    {
+      name: 'kind', label: 'Tür', widget: 'select', default: 'daily',
+      options: [{ label: 'Yemek', value: 'food' }, { label: 'Gezi', value: 'travel' }, { label: 'Günlük', value: 'daily' }],
+    },
+    { name: 'draft', label: 'Taslak', widget: 'boolean', default: false, hint: 'Açıksa paylaşım sitede görünmez.' },
+    { name: 'body', label: 'Açıklama', widget: 'text', required: false },
+  ],
+};
+
 const text = (name: string, label: string, extra = {}) => ({ name, label, widget: 'string', ...extra });
 const strings = (name: string, label: string) => ({ name, label, widget: 'list' });
 
@@ -186,9 +222,17 @@ export const config = {
   display_url: 'https://mifarosa.com',
   media_folder: '/public/images',
   public_folder: '/images',
+  // Phone photos are shrunk and re-encoded on upload, which also strips EXIF/GPS metadata
+  media_libraries: {
+    default: {
+      config: {
+        transformations: { raster_image: { format: 'webp', quality: 82, width: 2000, height: 2000 } },
+      },
+    },
+  },
   slug: { encoding: 'ascii', clean_accents: true },
   output: { omit_empty_optional_fields: true },
-  collections: [blog, projects, games, profile],
+  collections: [unfiltered, blog, projects, games, profile],
 };
 
 export const GET: APIRoute = () =>
