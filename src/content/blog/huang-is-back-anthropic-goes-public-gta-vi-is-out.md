@@ -49,9 +49,7 @@ In an announcement on November 24, Tidal said that starting December 9 it will b
 **Those in favor of the ban** say it protects real artists' royalties, keeps listeners from being misled by impersonations, and preserves the quality of the catalog.
 **Skeptics** point out that other platforms so far only label AI music. In June, Tidal itself said listeners should be free to choose what they hear. It is also unclear how accurate detection tools are.
 
-**Your take:** Should fully AI-generated music be banned, or is a label enough?
-
-#### 🎁 Gift of the week
+🎁 Gift of the week
 
 Kaggle and Google's "5-Day AI Agents Intensive" course is now available free and self-paced. Each day pairs a whitepaper with two hands-on notebooks, covering agent design, tools, MCP, memory, evaluation and deployment. Some Python is all you need.
 
